@@ -1,61 +1,106 @@
-import React, { useState } from 'react';
-import { parseExcel } from '../utils/excelParser';
+import React, { useState, useRef } from 'react';
+import { parseExcel, parseSheet } from '../utils/excelParser';
 
 const TableManager: React.FC = () => {
-    const [data, setData] = useState<any[]>([]);
     const [sheetNames, setSheetNames] = useState<string[]>([]);
+    const [data, setData] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Utilisation de useRef pour accéder à l'élément input
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
-        parseExcel(file)
-            .then(parsedData => {
-                setSheetNames(parsedData.sheetNames); // Set the sheet names
-                setData(parsedData.data); // Set the data (initially empty)
-                setError(null);
-            })
-            .catch(err => {
-                setError('Failed to parse the Excel file.');
-                console.error(err);
-            });
+        try {
+            const { sheetNames } = await parseExcel(file);
+            setSheetNames(sheetNames); // Met à jour les noms des feuilles
+            setData([]); // Réinitialise les données
+            setError(null);
+        } catch (err) {
+            setError('Erreur lors de l\'importation du fichier Excel.');
+            console.error(err);
+        }
+    };
+
+    const handleSheetSelect = async (sheetName: string) => {
+        // Accéder au fichier via la référence
+        const file = fileInputRef.current?.files?.[0];
+        if (!file) return;
+
+        try {
+            const sheetData = await parseSheet(file, sheetName);
+            setData(sheetData); // Met à jour les données de la feuille sélectionnée
+            setError(null);
+        } catch (err) {
+            setError(`Erreur lors du chargement de la feuille "${sheetName}".`);
+            console.error(err);
+        }
     };
 
     return (
-        <div>
-            <h1>Table Manager</h1>
-            <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+        <div style={{ padding: '20px' }}>
+            <h1>Gestionnaire de Tableaux Excel</h1>
+            {/* Ajout de la référence à l'élément input */}
+            <input
+                type="file"
+                accept=".xlsx, .xls"
+                onChange={handleFileUpload}
+                ref={fileInputRef}
+            />
             {error && <p style={{ color: 'red' }}>{error}</p>}
+
             {sheetNames.length > 0 && (
-                <div>
-                    <h2>Available Sheets:</h2>
-                    <ul>
+                <div style={{ marginTop: '20px' }}>
+                    <h2>Feuilles disponibles :</h2>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                         {sheetNames.map(sheetName => (
-                            <li key={sheetName}>{sheetName}</li>
+                            <button
+                                key={sheetName}
+                                onClick={() => handleSheetSelect(sheetName)}
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: '#007BFF',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                {sheetName}
+                            </button>
                         ))}
-                    </ul>
+                    </div>
                 </div>
             )}
+
             {data.length > 0 && (
-                <table style={{ border: '1px solid black', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr>
-                            {Object.keys(data[0]).map(key => (
-                                <th key={key}>{key}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.map((row, index) => (
-                            <tr key={index}>
-                                {Object.values(row).map((value, i) => (
-                                    <td key={i}>{value}</td>
+                <div style={{ marginTop: '20px' }}>
+                    <h2>Données de la feuille sélectionnée :</h2>
+                    <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', border: '1px solid black' }}>
+                        <thead>
+                            <tr>
+                                {Object.keys(data[0]).map(key => (
+                                    <th key={key} style={{ padding: '10px', backgroundColor: '#f2f2f2' }}>
+                                        {key}
+                                    </th>
                                 ))}
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {data.map((row, index) => (
+                                <tr key={index}>
+                                    {Object.values(row).map((value, i) => (
+                                        <td key={i} style={{ padding: '10px' }}>
+                                            {value}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
         </div>
     );
