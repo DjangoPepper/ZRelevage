@@ -5,18 +5,22 @@ export const parseExcel = (file: File): Promise<any[]> => {
         const reader = new FileReader();
         
         reader.onload = (event) => {
-            const data = new Uint8Array(event.target?.result as ArrayBuffer);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
-            resolve(jsonData);
+            const binaryStr = event.target?.result;
+            if (typeof binaryStr === 'string') {
+                const workbook = XLSX.read(binaryStr, { type: 'binary' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                resolve(jsonData);
+            } else {
+                reject(new Error('Invalid file format'));
+            }
         };
 
         reader.onerror = (error) => {
             reject(error);
         };
 
-        reader.readAsArrayBuffer(file);
+        reader.readAsBinaryString(file);
     });
 };
