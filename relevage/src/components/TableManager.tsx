@@ -121,8 +121,41 @@ const TableManager: React.FC = () => {
         <div style={{ marginTop: '20px' }}>
             <h3>Actions sur les en-têtes :</h3>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        <button
+                            onClick={() => {
+                                const newHeaderName = prompt('Nom du nouvel en-tête :');
+                                if (newHeaderName) handleHeaderAction('add', undefined, newHeaderName);
+                            }}
+                            style={{
+                                padding: '5px 10px',
+                                backgroundColor: 'green',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            ADdz
+                        </button>
                 {headers.map((header) => (
+                    
                     <div key={header} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        {/* <button
+                            onClick={() => {
+                                const newHeaderName = prompt('Nom du nouvel en-tête :');
+                                if (newHeaderName) handleHeaderAction('add', undefined, newHeaderName);
+                            }}
+                            style={{
+                                padding: '5px 10px',
+                                backgroundColor: 'green',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            ADdz
+                        </button> */}
                         <button
                             onClick={() => {
                                 const newHeaderName = prompt(`Modifier l'en-tête "${header}" :`, header);
