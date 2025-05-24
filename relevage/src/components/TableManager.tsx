@@ -117,6 +117,31 @@ const TableManager: React.FC = () => {
         );
     };
 
+    const handleAddColumn = (clickedHeader: string) => {
+        setHeaders((prevHeaders) => {
+            const index = prevHeaders.indexOf(clickedHeader);
+            if (index === -1) return prevHeaders;
+
+            const newHeaders = [...prevHeaders];
+            newHeaders.splice(index, 0, `New Column ${index}`);
+            return newHeaders;
+        });
+
+        setData((prevData) =>
+            prevData.map((row) => {
+                const newRow: Record<string, any> = {};
+                const keys = Object.keys(row);
+                keys.forEach((key, idx) => {
+                    if (idx === keys.indexOf(clickedHeader)) {
+                        newRow[`New Column ${idx}`] = 0; // Default value
+                    }
+                    newRow[key] = row[key];
+                });
+                return newRow;
+            })
+        );
+    };
+
     const renderHeaderActions = () => (
         <div style={{ marginTop: '20px' }}>
             <h3>Actions sur les en-têtes :</h3>
@@ -185,7 +210,7 @@ const TableManager: React.FC = () => {
                         >
                             {hiddenColumns.includes(header) ? 'View' : 'Hidd'}
                         </button>
-                        <button
+                        {/* <button
                             onClick={() => handleMoveColumn(header, 'left')}
                             style={{
                                 padding: '5px 10px',
@@ -212,7 +237,7 @@ const TableManager: React.FC = () => {
                             disabled={headers.indexOf(header) === headers.length - 1} // Disable if it's the last column
                         >
                             →
-                        </button>
+                        </button> */}
                         <span>{header}</span>
                     </div>
                 ))}
@@ -236,9 +261,45 @@ const TableManager: React.FC = () => {
         </div>
     );
 
+    const renderTableHeaders = () => {
+        return headers
+            .filter((header) => !hiddenColumns.includes(header))
+            .map((header) => (
+                <th key={header}>
+                    {header}
+                    <button onClick={() => {
+                            const newHeaderName = prompt(`Modifier l'en-tête "${header}" :`, header);
+                            if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
+                        }}
+                    >
+                        M
+                    </button>
+                    <button onClick={() => handleAddColumn(header)}>+</button>
+                    <button onClick={() => handleMoveColumn(header, 'left')}>L</button>
+                    <button onClick={() => handleMoveColumn(header, 'right')}>R</button>
+                    {/* <button onClick={() => handleHeaderAction('hidde', header)}>Afficher/Masquer</button> */}
+                </th>
+            ));
+    };
+
+    const renderSheetSelector = () => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span>Feuilles disponibles:</span>
+            {sheetNames.map((sheetName) => (
+                <button
+                    key={sheetName}
+                    onClick={() => handleSheetSelect(sheetName)}
+                    style={{ padding: '5px 10px', cursor: 'pointer' }}
+                >
+                    {sheetName}
+                </button>
+            ))}
+        </div>
+    );
+
     return (
         <div style={{ padding: '20px' }}>
-            <h1 style={{ textAlign: 'center' }}>Gestionnaire de Tableaux Excel</h1>
+            {/* <h1 style={{ textAlign: 'center' }}>Gestionnaire de Tableaux Excel</h1> */}
             <input
                 type="file"
                 accept=".xlsx, .xls"
@@ -248,9 +309,9 @@ const TableManager: React.FC = () => {
             {error && <p style={{ color: 'red' }}>{error}</p>}
 
             {sheetNames.length > 0 && (
-                <div style={{ marginTop: '20px' }}>
-                    <h2>Feuilles disponibles :</h2>
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h2 style={{ margin: 0 }}>Feuilles disponibles :</h2>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'nowrap', overflowX: 'auto' }}>
                         {sheetNames.map(sheetName => (
                             <button
                                 key={sheetName}
@@ -262,6 +323,7 @@ const TableManager: React.FC = () => {
                                     border: 'none',
                                     borderRadius: '5px',
                                     cursor: 'pointer',
+                                    whiteSpace: 'nowrap',
                                 }}
                             >
                                 {sheetName}
@@ -277,17 +339,7 @@ const TableManager: React.FC = () => {
                 <div style={{ marginTop: '20px' }}>
                     <h2>Données de la feuille sélectionnée :</h2>
                     <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', border: '1px solid black' }}>
-                        <thead>
-                            <tr>
-                                {headers
-                                    .filter((key) => !hiddenColumns.includes(key)) // Filtrer les colonnes masquées
-                                    .map((key) => (
-                                        <th key={key} style={{ padding: '10px', backgroundColor: '#f2f2f2' }}>
-                                            {key}
-                                        </th>
-                                    ))}
-                            </tr>
-                        </thead>
+                        {renderTableHeaders()}
                         <tbody>
                             {data.map((row, index) => (
                                 <tr key={index}>
