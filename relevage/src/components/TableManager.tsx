@@ -41,7 +41,7 @@ const TableManager: React.FC = () => {
 
     return (
         <div style={{ padding: '20px' }}>
-            <h1>Gestionnaire de Tableaux Excel</h1>
+            <h1>Gestionnaire d'importation</h1>
             {/* Ajout de la référence à l'élément input */}
             <input
                 type="file"

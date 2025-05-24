@@ -4,7 +4,7 @@ import TableManager from './components/TableManager';
 const App: React.FC = () => {
     return (
         <div className="App">
-            <h1>Relevage - Excel Table Manager</h1>
+            <h1 style={{ textAlign: 'center' }}>Relevage</h1>
             <TableManager />
         </div>
     );
