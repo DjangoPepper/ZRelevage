@@ -43,7 +43,7 @@ const TableManager: React.FC = () => {
 
     const handleHeaderAction = (action: string, headerName?: string, newHeaderName?: string) => {
         switch (action) {
-            case 'delete':
+            case 'hidde':
                 if (headerName) {
                     setHiddenColumns((prevHiddenColumns) =>
                         prevHiddenColumns.includes(headerName)
@@ -85,19 +85,21 @@ const TableManager: React.FC = () => {
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 {headers.map((header) => (
                     <div key={header} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span>{header}</span>
                         <button
-                            onClick={() => handleHeaderAction('delete', header)}
+                            onClick={() => {
+                                const newHeaderName = prompt('Nom du nouvel en-tête :');
+                                if (newHeaderName) handleHeaderAction('add', undefined, newHeaderName);
+                            }}
                             style={{
                                 padding: '5px 10px',
-                                backgroundColor: hiddenColumns.includes(header) ? '#d3d3d3' : '#FF5733',
+                                backgroundColor: 'green',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '5px',
                                 cursor: 'pointer',
                             }}
                         >
-                            {hiddenColumns.includes(header) ? 'Afficher' : 'Masquer'}
+                            ADd
                         </button>
                         <button
                             onClick={() => {
@@ -113,8 +115,22 @@ const TableManager: React.FC = () => {
                                 cursor: 'pointer',
                             }}
                         >
-                            Modifier
+                            MOd
                         </button>
+                        <button
+                            onClick={() => handleHeaderAction('hidde', header)}
+                            style={{
+                                padding: '5px 10px',
+                                backgroundColor: hiddenColumns.includes(header) ? '#d3d3d3' : '#FF5733',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            {hiddenColumns.includes(header) ? 'View' : 'Hidd'}
+                        </button>
+                        <span>{header}</span>
                     </div>
                 ))}
                 <button
@@ -131,7 +147,7 @@ const TableManager: React.FC = () => {
                         cursor: 'pointer',
                     }}
                 >
-                    Ajouter un nouvel en-tête
+                    ADd
                 </button>
             </div>
         </div>
