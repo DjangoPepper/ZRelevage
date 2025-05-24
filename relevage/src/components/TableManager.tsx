@@ -4,6 +4,7 @@ import { parseExcel, parseSheet } from '../utils/excelParser';
 const TableManager: React.FC = () => {
     const [sheetNames, setSheetNames] = useState<string[]>([]);
     const [data, setData] = useState<any[]>([]);
+    const [headers, setHeaders] = useState<string[]>([]); // Nouveaux en-têtes
     const [error, setError] = useState<string | null>(null);
     const [hiddenColumns, setHiddenColumns] = useState<string[]>([]); // Colonnes masquées
 
@@ -31,6 +32,7 @@ const TableManager: React.FC = () => {
         try {
             const sheetData = await parseSheet(file, sheetName);
             setData(sheetData);
+            setHeaders(Object.keys(sheetData[0])); // Récupère les en-têtes
             setHiddenColumns([]); // Réinitialise les colonnes masquées
             setError(null);
         } catch (err) {
@@ -39,33 +41,104 @@ const TableManager: React.FC = () => {
         }
     };
 
-    const handleColumnToggle = (columnName: string) => {
-        setHiddenColumns((prevHiddenColumns) =>
-            prevHiddenColumns.includes(columnName)
-                ? prevHiddenColumns.filter((col) => col !== columnName) // Réaffiche la colonne
-                : [...prevHiddenColumns, columnName] // Masque la colonne
-        );
+    const handleHeaderAction = (action: string, headerName?: string, newHeaderName?: string) => {
+        switch (action) {
+            case 'delete':
+                setHeaders((prevHeaders) => prevHeaders.filter((header) => header !== headerName));
+                setData((prevData) =>
+                    prevData.map((row) => {
+                        if (headerName) {
+                            const { [headerName]: _, ...rest } = row; // Remove the headerName key
+                            return rest;
+                        }
+                        return row; // Return the row unchanged if headerName is null or undefined
+                    })
+                );
+                break;
+            case 'modify':
+                setHeaders((prevHeaders) =>
+                    prevHeaders.map((header) => (header === headerName && newHeaderName ? newHeaderName : header))
+                );
+                setData((prevData) =>
+                    prevData.map((row) => {
+                        if (headerName && newHeaderName) {
+                            const { [headerName]: value, ...rest } = row; // Destructure to remove the old header
+                            return { ...rest, [newHeaderName]: value }; // Add the new header with the value
+                        }
+                        return row; // Return the row unchanged if headerName or newHeaderName is undefined
+                    })
+                );
+                break;
+            case 'add':
+                if (newHeaderName) {
+                    setHeaders((prevHeaders) => [...prevHeaders, newHeaderName]);
+                    setData((prevData) =>
+                        prevData.map((row) => ({ ...row, [newHeaderName]: '' }))
+                    );
+                }
+                break;
+            default:
+                break;
+        }
     };
 
-    const handleRemoveFirstLine = () => {
-        setData((prevData) => prevData.slice(1)); // Supprime la première ligne
-    };
-    const handleAddFirstLine = () => {
-        setData((prevData) => {
-            if (prevData.length === 0) {
-                // Si prevData est vide, retourne une ligne avec une colonne par défaut contenant '0'
-                return [{ defaultColumn: 0 }];
-            }
-
-            // Crée une nouvelle ligne avec '0' pour chaque colonne existante
-            const newLine: Record<string, number> = {};
-            for (const key of Object.keys(prevData[0])) {
-                newLine[key] = 0; // Ajoute '0' pour chaque colonne
-            }
-
-            return [newLine, ...prevData]; // Ajoute la nouvelle ligne au début des données
-        });
-    };
+    const renderHeaderActions = () => (
+        <div style={{ marginTop: '20px' }}>
+            <h3>Actions sur les en-têtes :</h3>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                {headers.map((header) => (
+                    <div key={header} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span>{header}</span>
+                        <button
+                            onClick={() => handleHeaderAction('delete', header)}
+                            style={{
+                                padding: '5px 10px',
+                                backgroundColor: '#FF5733',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Supprimer
+                        </button>
+                        <button
+                            onClick={() => {
+                                const newHeaderName = prompt(`Modifier l'en-tête "${header}" :`, header);
+                                if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
+                            }}
+                            style={{
+                                padding: '5px 10px',
+                                backgroundColor: '#007BFF',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Modifier
+                        </button>
+                    </div>
+                ))}
+                <button
+                    onClick={() => {
+                        const newHeaderName = prompt('Nom du nouvel en-tête :');
+                        if (newHeaderName) handleHeaderAction('add', undefined, newHeaderName);
+                    }}
+                    style={{
+                        padding: '5px 10px',
+                        backgroundColor: 'green',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                    }}
+                >
+                    Ajouter un nouvel en-tête
+                </button>
+            </div>
+        </div>
+    );
 
     return (
         <div style={{ padding: '20px' }}>
@@ -102,64 +175,15 @@ const TableManager: React.FC = () => {
                 </div>
             )}
 
+            {headers.length > 0 && renderHeaderActions()}
+
             {data.length > 0 && (
                 <div style={{ marginTop: '20px' }}>
                     <h2>Données de la feuille sélectionnée :</h2>
-                    <div style={{ marginBottom: '20px' }}>
-                        <h3>Colonnes :</h3>
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                            {Object.keys(data[0]).map((columnName) => (
-                                <button
-                                    key={columnName}
-                                    onClick={() => handleColumnToggle(columnName)}
-                                    style={{
-                                        padding: '10px 20px',
-                                        backgroundColor: hiddenColumns.includes(columnName)
-                                            ? '#d3d3d3' // Grisé si masqué
-                                            : '#007BFF',
-                                        color: hiddenColumns.includes(columnName) ? '#808080' : 'white',
-                                        border: 'none',
-                                        borderRadius: '5px',
-                                        cursor: 'pointer',
-                                    }}
-                                >
-                                    {columnName}
-                                </button>
-                            ))}
-                            {/* Bouton pour supprimer la première ligne */}
-                            <button
-                                onClick={handleRemoveFirstLine}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: '#FF5733',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                Supprimer la première ligne
-                            </button>
-
-                            <button
-                                onClick={handleAddFirstLine}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: 'blue',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                Ajoute une première ligne
-                            </button>
-                        </div>
-                    </div>
                     <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', border: '1px solid black' }}>
                         <thead>
                             <tr>
-                                {Object.keys(data[0])
+                                {headers
                                     .filter((key) => !hiddenColumns.includes(key)) // Filtrer les colonnes masquées
                                     .map((key) => (
                                         <th key={key} style={{ padding: '10px', backgroundColor: '#f2f2f2' }}>
@@ -171,11 +195,11 @@ const TableManager: React.FC = () => {
                         <tbody>
                             {data.map((row, index) => (
                                 <tr key={index}>
-                                    {Object.entries(row)
-                                        .filter(([key]) => !hiddenColumns.includes(key)) // Filtrer les colonnes masquées
-                                        .map(([key, value], i) => (
+                                    {headers
+                                        .filter((key) => !hiddenColumns.includes(key)) // Filtrer les colonnes masquées
+                                        .map((key, i) => (
                                             <td key={i} style={{ padding: '10px' }}>
-                                                {value}
+                                                {row[key]}
                                             </td>
                                         ))}
                                 </tr>
