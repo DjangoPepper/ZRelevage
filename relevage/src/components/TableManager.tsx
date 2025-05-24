@@ -266,18 +266,21 @@ const TableManager: React.FC = () => {
             .filter((header) => !hiddenColumns.includes(header))
             .map((header) => (
                 <th key={header}>
-                    {header}
-                    <button onClick={() => {
-                            const newHeaderName = prompt(`Modifier l'en-tête "${header}" :`, header);
-                            if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
-                        }}
-                    >
-                        M
-                    </button>
-                    <button onClick={() => handleAddColumn(header)}>+</button>
-                    <button onClick={() => handleMoveColumn(header, 'left')}>L</button>
-                    <button onClick={() => handleMoveColumn(header, 'right')}>R</button>
-                    {/* <button onClick={() => handleHeaderAction('hidde', header)}>Afficher/Masquer</button> */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div>
+                            <button onClick={() => {
+                                    const newHeaderName = prompt(`Modifier l'en-tête \"${header}\" :`, header);
+                                    if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
+                                }}
+                            >
+                                M
+                            </button>
+                            <button onClick={() => handleAddColumn(header)}>+</button>
+                            <button onClick={() => handleMoveColumn(header, 'left')}>L</button>
+                            <button onClick={() => handleMoveColumn(header, 'right')}>R</button>
+                        </div>
+                        <div>{header}</div>
+                    </div>
                 </th>
             ));
     };
