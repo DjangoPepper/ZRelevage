@@ -47,6 +47,10 @@ const TableManager: React.FC = () => {
         );
     };
 
+    const handleRemoveFirstLine = () => {
+        setData((prevData) => prevData.slice(1)); // Supprime la première ligne
+    };
+
     return (
         <div style={{ padding: '20px' }}>
             <h1 style={{ textAlign: 'center' }}>Gestionnaire de Tableaux Excel</h1>
@@ -106,6 +110,20 @@ const TableManager: React.FC = () => {
                                     {columnName}
                                 </button>
                             ))}
+                            {/* Bouton pour supprimer la première ligne */}
+                            <button
+                                onClick={handleRemoveFirstLine}
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: '#FF5733',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                Supprimer la première ligne
+                            </button>
                         </div>
                     </div>
                     <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', border: '1px solid black' }}>
