@@ -50,6 +50,12 @@ const TableManager: React.FC = () => {
     const handleRemoveFirstLine = () => {
         setData((prevData) => prevData.slice(1)); // Supprime la première ligne
     };
+    const handleAddFirstLine = () => {
+        if (data.length === 0) return;
+
+        // Ajoute une ligne vide au début des données
+        setData((prevData) => [{}, ...prevData]);
+    };
 
     return (
         <div style={{ padding: '20px' }}>
@@ -126,7 +132,7 @@ const TableManager: React.FC = () => {
                             </button>
 
                             <button
-                                onClick={handleRemoveFirstLine}
+                                onClick={handleAddFirstLine}
                                 style={{
                                     padding: '10px 20px',
                                     backgroundColor: 'blue',
