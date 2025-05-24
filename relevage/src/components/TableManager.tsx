@@ -97,7 +97,7 @@ const TableManager: React.FC = () => {
                                 cursor: 'pointer',
                             }}
                         >
-                            {hiddenColumns.includes(header) ? 'Réafficher' : 'Masquer'}
+                            {hiddenColumns.includes(header) ? 'Afficher' : 'Masquer'}
                         </button>
                         <button
                             onClick={() => {
