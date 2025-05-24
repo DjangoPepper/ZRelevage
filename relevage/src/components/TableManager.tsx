@@ -51,10 +51,20 @@ const TableManager: React.FC = () => {
         setData((prevData) => prevData.slice(1)); // Supprime la première ligne
     };
     const handleAddFirstLine = () => {
-        if (data.length === 0) return;
+        setData((prevData) => {
+            if (prevData.length === 0) {
+                // Si prevData est vide, retourne une ligne avec une colonne par défaut contenant '0'
+                return [{ defaultColumn: 0 }];
+            }
 
-        // Ajoute une ligne vide au début des données
-        setData((prevData) => [{}, ...prevData]);
+            // Crée une nouvelle ligne avec '0' pour chaque colonne existante
+            const newLine: Record<string, number> = {};
+            for (const key of Object.keys(prevData[0])) {
+                newLine[key] = 0; // Ajoute '0' pour chaque colonne
+            }
+
+            return [newLine, ...prevData]; // Ajoute la nouvelle ligne au début des données
+        });
     };
 
     return (
