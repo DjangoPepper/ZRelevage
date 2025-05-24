@@ -79,28 +79,50 @@ const TableManager: React.FC = () => {
         }
     };
 
+    const handleMoveColumn = (headerName: string, direction: 'left' | 'right') => {
+        setHeaders((prevHeaders) => {
+            const index = prevHeaders.indexOf(headerName);
+            if (index === -1) return prevHeaders;
+
+            const newHeaders = [...prevHeaders];
+            const targetIndex = direction === 'left' ? index - 1 : index + 1;
+
+            if (targetIndex >= 0 && targetIndex < newHeaders.length) {
+                // Swap the columns
+                [newHeaders[index], newHeaders[targetIndex]] = [newHeaders[targetIndex], newHeaders[index]];
+            }
+            return newHeaders;
+        });
+
+        setData((prevData) =>
+            prevData.map((row) => {
+                const newRow: Record<string, any> = {};
+                const keys = Object.keys(row);
+
+                const reorderedKeys = [...keys];
+                const index = reorderedKeys.indexOf(headerName);
+                const targetIndex = direction === 'left' ? index - 1 : index + 1;
+
+                if (index !== -1 && targetIndex >= 0 && targetIndex < reorderedKeys.length) {
+                    // Swap the keys
+                    [reorderedKeys[index], reorderedKeys[targetIndex]] = [reorderedKeys[targetIndex], reorderedKeys[index]];
+                }
+
+                reorderedKeys.forEach((key) => {
+                    newRow[key] = row[key];
+                });
+
+                return newRow;
+            })
+        );
+    };
+
     const renderHeaderActions = () => (
         <div style={{ marginTop: '20px' }}>
             <h3>Actions sur les en-têtes :</h3>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 {headers.map((header) => (
                     <div key={header} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <button
-                            onClick={() => {
-                                const newHeaderName = prompt('Nom du nouvel en-tête :');
-                                if (newHeaderName) handleHeaderAction('add', undefined, newHeaderName);
-                            }}
-                            style={{
-                                padding: '5px 10px',
-                                backgroundColor: 'green',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            ADd
-                        </button>
                         <button
                             onClick={() => {
                                 const newHeaderName = prompt(`Modifier l'en-tête "${header}" :`, header);
@@ -129,6 +151,34 @@ const TableManager: React.FC = () => {
                             }}
                         >
                             {hiddenColumns.includes(header) ? 'View' : 'Hidd'}
+                        </button>
+                        <button
+                            onClick={() => handleMoveColumn(header, 'left')}
+                            style={{
+                                padding: '5px 10px',
+                                backgroundColor: '#007BFF',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                            disabled={headers.indexOf(header) === 0} // Disable if it's the first column
+                        >
+                            ←
+                        </button>
+                        <button
+                            onClick={() => handleMoveColumn(header, 'right')}
+                            style={{
+                                padding: '5px 10px',
+                                backgroundColor: '#007BFF',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                            disabled={headers.indexOf(header) === headers.length - 1} // Disable if it's the last column
+                        >
+                            →
                         </button>
                         <span>{header}</span>
                     </div>
