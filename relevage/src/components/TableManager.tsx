@@ -44,16 +44,13 @@ const TableManager: React.FC = () => {
     const handleHeaderAction = (action: string, headerName?: string, newHeaderName?: string) => {
         switch (action) {
             case 'delete':
-                setHeaders((prevHeaders) => prevHeaders.filter((header) => header !== headerName));
-                setData((prevData) =>
-                    prevData.map((row) => {
-                        if (headerName) {
-                            const { [headerName]: _, ...rest } = row; // Remove the headerName key
-                            return rest;
-                        }
-                        return row; // Return the row unchanged if headerName is null or undefined
-                    })
-                );
+                if (headerName) {
+                    setHiddenColumns((prevHiddenColumns) =>
+                        prevHiddenColumns.includes(headerName)
+                            ? prevHiddenColumns.filter((col) => col !== headerName) // Unhide column
+                            : [...prevHiddenColumns, headerName] // Hide column
+                    );
+                }
                 break;
             case 'modify':
                 setHeaders((prevHeaders) =>
@@ -93,14 +90,14 @@ const TableManager: React.FC = () => {
                             onClick={() => handleHeaderAction('delete', header)}
                             style={{
                                 padding: '5px 10px',
-                                backgroundColor: '#FF5733',
+                                backgroundColor: hiddenColumns.includes(header) ? '#d3d3d3' : '#FF5733',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '5px',
                                 cursor: 'pointer',
                             }}
                         >
-                            Supprimer
+                            {hiddenColumns.includes(header) ? 'Réafficher' : 'Masquer'}
                         </button>
                         <button
                             onClick={() => {
