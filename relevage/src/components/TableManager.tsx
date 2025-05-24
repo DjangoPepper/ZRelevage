@@ -124,6 +124,20 @@ const TableManager: React.FC = () => {
                             >
                                 Supprimer la première ligne
                             </button>
+
+                            <button
+                                onClick={handleRemoveFirstLine}
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: 'blue',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                Ajoute une première ligne
+                            </button>
                         </div>
                     </div>
                     <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', border: '1px solid black' }}>
