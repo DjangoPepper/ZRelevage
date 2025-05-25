@@ -10,6 +10,7 @@ const TableManager: React.FC = () => {
     const [showActions, setShowActions] = useState<boolean>(true); // État pour afficher/masquer les actions
     const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+    const [columnColors, setColumnColors] = useState<Record<string, { min: number; max: number }>>({});
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -126,7 +127,8 @@ const TableManager: React.FC = () => {
             if (index === -1) return prevHeaders;
 
             const newHeaders = [...prevHeaders];
-            newHeaders.splice(index, 0, `New Column ${index}`);
+            const newColumnName = `New Column ${index}`;
+            newHeaders.splice(index, 0, newColumnName);
             return newHeaders;
         });
 
@@ -136,7 +138,7 @@ const TableManager: React.FC = () => {
                 const keys = Object.keys(row);
                 keys.forEach((key, idx) => {
                     if (idx === keys.indexOf(clickedHeader)) {
-                        newRow[`New Column ${idx}`] = 0; // Default value
+                        newRow[`New Column ${keys.indexOf(clickedHeader)}`] = ''; // Default value
                     }
                     newRow[key] = row[key];
                 });
@@ -160,6 +162,63 @@ const TableManager: React.FC = () => {
             }
             // Default to ascending order
             return { key, direction: 'asc' };
+        });
+    };
+
+    const handleColorizeColumn = (header: string) => {
+        const minMax = filteredData.reduce(
+            (acc, row) => {
+                const value = parseFloat(row[header]);
+                if (!isNaN(value)) {
+                    acc.min = Math.min(acc.min, value);
+                    acc.max = Math.max(acc.max, value);
+                }
+                return acc;
+            },
+            { min: Infinity, max: -Infinity }
+        );
+
+        setColumnColors((prevColors) => ({
+            ...prevColors,
+            [header]: minMax,
+        }));
+    };
+
+    const handleToggleColorizeColumn = (header: string) => {
+        setColumnColors((prevColors) => {
+            if (prevColors[header]) {
+                // Remove colorization if it already exists
+                const { [header]: _, ...rest } = prevColors;
+                return rest;
+            } else {
+                // Add colorization
+                const minMax = data.reduce(
+                    (acc, row) => {
+                        const value = parseFloat(row[header]);
+                        if (!isNaN(value)) {
+                            acc.min = Math.min(acc.min, value);
+                            acc.max = Math.max(acc.max, value);
+                        }
+                        return acc;
+                    },
+                    { min: Infinity, max: -Infinity }
+                );
+                return {
+                    ...prevColors,
+                    [header]: minMax,
+                };
+            }
+        });
+    };
+
+    const handleEditCell = (rowIndex: number, columnKey: string, newValue: string) => {
+        setData((prevData) => {
+            const updatedData = [...prevData];
+            updatedData[rowIndex] = {
+                ...updatedData[rowIndex],
+                [columnKey]: newValue,
+            };
+            return updatedData;
         });
     };
 
@@ -230,6 +289,12 @@ const TableManager: React.FC = () => {
                             >
                                 {hiddenColumns.includes(header) ? 'View' : 'Hidd'}
                             </button>
+                            <button
+                                onClick={() => handleToggleColorizeColumn(header)}
+                                style={{ padding: '5px 10px', backgroundColor: '#D3D3D3', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+                            >
+                                {columnColors[header] ? 'Remove Colorization' : 'Colorize'}
+                            </button>
                             <span>{header}</span>
                         </div>
                     ))}
@@ -286,8 +351,16 @@ const TableManager: React.FC = () => {
                         {headers
                             .filter((header) => !hiddenColumns.includes(header))
                             .map((header) => (
-                                <td key={header} style={{ border: '1px solid black', textAlign: 'center' }}>
-                                    {row[header]}
+                                <td
+                                    key={header}
+                                    style={{ border: '1px solid black', textAlign: 'center' }}
+                                >
+                                    <input
+                                        type="text"
+                                        value={row[header] || ''}
+                                        onChange={(e) => handleEditCell(rowIndex, header, e.target.value)}
+                                        style={{ width: '100%', border: 'none', textAlign: 'center' }}
+                                    />
                                 </td>
                             ))}
                     </tr>
