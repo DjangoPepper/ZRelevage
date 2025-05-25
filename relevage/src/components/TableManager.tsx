@@ -10,7 +10,7 @@ const TableManager: React.FC = () => {
     const [showActions, setShowActions] = useState<boolean>(true); // État pour afficher/masquer les actions
     const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
-    const [columnColors, setColumnColors] = useState<Record<string, { min: number; max: number }>>({});
+    const [columnColors, setColumnColors] = useState<Record<string, string>>({});
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -165,21 +165,13 @@ const TableManager: React.FC = () => {
     };
 
     const handleColorizeColumn = (header: string) => {
-        const minMax = filteredData.reduce(
-            (acc, row) => {
-                const value = parseFloat(row[header]);
-                if (!isNaN(value)) {
-                    acc.min = Math.min(acc.min, value);
-                    acc.max = Math.max(acc.max, value);
-                }
-                return acc;
-            },
-            { min: Infinity, max: -Infinity }
-        );
-
+        const pastelColors = [
+            '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9', '#BAE1FF'
+        ];
+        const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
         setColumnColors((prevColors) => ({
             ...prevColors,
-            [header]: minMax,
+            [header]: randomColor,
         }));
     };
 
@@ -317,17 +309,7 @@ const TableManager: React.FC = () => {
                                     style={{
                                         border: '1px solid black',
                                         textAlign: 'center',
-                                        backgroundColor: (() => {
-                                            const range = columnColors[header];
-                                            if (range && typeof row[header] === 'number') {
-                                                const value = row[header];
-                                                const ratio = (value - range.min) / (range.max - range.min);
-                                                const red = Math.round(255 * (1 - ratio));
-                                                const green = Math.round(255 * ratio);
-                                                return `rgb(${red}, ${green}, 200)`;
-                                            }
-                                            return 'transparent';
-                                        })(),
+                                        backgroundColor: columnColors[header] || 'transparent',
                                     }}
                                 >
                                     {row[header]}
