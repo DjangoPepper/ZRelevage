@@ -146,7 +146,7 @@ const TableManager: React.FC = () => {
         <div style={{ marginTop: '20px' }}>
             <h3>Actions sur les en-têtes :</h3>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        <button
+                        {/* <button
                             onClick={() => {
                                 const newHeaderName = prompt('Nom du nouvel en-tête :');
                                 if (newHeaderName) handleHeaderAction('add', undefined, newHeaderName);
@@ -161,7 +161,7 @@ const TableManager: React.FC = () => {
                             }}
                         >
                             ADdz
-                        </button>
+                        </button> */}
                 {headers.map((header) => (
                     
                     <div key={header} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -181,6 +181,8 @@ const TableManager: React.FC = () => {
                         >
                             ADdz
                         </button> */}
+                        &nbsp;
+                        &nbsp;
                         <button
                             onClick={() => {
                                 const newHeaderName = prompt(`Modifier l'en-tête "${header}" :`, header);
@@ -241,7 +243,7 @@ const TableManager: React.FC = () => {
                         <span>{header}</span>
                     </div>
                 ))}
-                <button
+{/*                 <button
                     onClick={() => {
                         const newHeaderName = prompt('Nom du nouvel en-tête :');
                         if (newHeaderName) handleHeaderAction('add', undefined, newHeaderName);
@@ -256,7 +258,7 @@ const TableManager: React.FC = () => {
                     }}
                 >
                     ADd
-                </button>
+                </button> */}
             </div>
         </div>
     );
@@ -268,13 +270,13 @@ const TableManager: React.FC = () => {
                 <th key={header}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <div>
-                            <button onClick={() => {
+                            {/* <button onClick={() => {
                                     const newHeaderName = prompt(`Modifier l'en-tête \"${header}\" :`, header);
                                     if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
                                 }}
                             >
                                 M
-                            </button>
+                            </button> */}
                             <button onClick={() => handleAddColumn(header)}>+</button>
                             <button onClick={() => handleMoveColumn(header, 'left')}>L</button>
                             <button onClick={() => handleMoveColumn(header, 'right')}>R</button>
