@@ -9,6 +9,7 @@ const TableManager: React.FC = () => {
     const [hiddenColumns, setHiddenColumns] = useState<string[]>([]); // Colonnes masquées
     const [showActions, setShowActions] = useState<boolean>(true); // État pour afficher/masquer les actions
     const [searchQuery, setSearchQuery] = useState('');
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -148,21 +149,18 @@ const TableManager: React.FC = () => {
         setSearchQuery(query);
     };
 
-    const handleSort = (headerName: string) => {
-        const isAscending = data[0] && data[0][headerName] !== undefined && typeof data[0][headerName] === 'string'
-            ? data.every((row) => row[headerName] >= row[headerName])
-            : true;
-
-        setData((prevData) =>
-            [...prevData].sort((a, b) => {
-                if (a[headerName] === b[headerName]) return 0;
-                if (a[headerName] == null) return isAscending ? 1 : -1;
-                if (b[headerName] == null) return isAscending ? -1 : 1;
-                return isAscending
-                    ? a[headerName] > b[headerName] ? 1 : -1
-                    : a[headerName] < b[headerName] ? 1 : -1;
-            })
-        );
+    const handleSort = (key: string) => {
+        setSortConfig((prevSortConfig) => {
+            if (prevSortConfig && prevSortConfig.key === key) {
+                // Toggle sort direction
+                return {
+                    key,
+                    direction: prevSortConfig.direction === 'asc' ? 'desc' : 'asc',
+                };
+            }
+            // Default to ascending order
+            return { key, direction: 'asc' };
+        });
     };
 
     const filteredData = data.filter((row) =>
@@ -170,6 +168,20 @@ const TableManager: React.FC = () => {
             value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
         )
     );
+
+    const sortedData = React.useMemo(() => {
+        if (!sortConfig) return filteredData;
+
+        const { key, direction } = sortConfig;
+        return [...filteredData].sort((a, b) => {
+            const aValue = a[key] || '';
+            const bValue = b[key] || '';
+
+            if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+            if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [filteredData, sortConfig]);
 
     const renderHeaderActions = () => (
         <div style={{ marginTop: '20px' }}>
@@ -269,7 +281,7 @@ const TableManager: React.FC = () => {
                 </tr>
             </thead>
             <tbody>
-                {filteredData.map((row, rowIndex) => (
+                {sortedData.map((row, rowIndex) => (
                     <tr key={rowIndex}>
                         {headers
                             .filter((header) => !hiddenColumns.includes(header))
