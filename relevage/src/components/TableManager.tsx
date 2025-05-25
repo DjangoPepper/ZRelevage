@@ -215,7 +215,7 @@ const TableManager: React.FC = () => {
                 <tr>
                     {headers
                         .filter((header) => !hiddenColumns.includes(header))
-                        .map((header) => (
+                        .map((header, index) => (
                             <th key={header} style={{ fontSize: '1.2em', fontWeight: 'bold', textDecoration: 'underline', fontFamily: 'Arial, sans-serif', textTransform: 'uppercase' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <div>
@@ -229,6 +229,9 @@ const TableManager: React.FC = () => {
                                         <button onClick={() => handleAddColumn(header)}>+</button>
                                         <button onClick={() => handleMoveColumn(header, 'left')}>←</button>
                                         <button onClick={() => handleMoveColumn(header, 'right')}>→</button>
+                                        {index === headers.length - 1 && (
+                                            <button onClick={() => handleAddColumn(header)}>+</button>
+                                        )}
                                     </div>
                                     <div>{header}</div>
                                 </div>
