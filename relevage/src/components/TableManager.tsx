@@ -263,29 +263,48 @@ const TableManager: React.FC = () => {
         </div>
     );
 
-    const renderTableHeaders = () => {
-        return headers
-            .filter((header) => !hiddenColumns.includes(header))
-            .map((header) => (
-                <th key={header}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div>
-                            {/* <button onClick={() => {
-                                    const newHeaderName = prompt(`Modifier l'en-tête \"${header}\" :`, header);
-                                    if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
-                                }}
-                            >
-                                M
-                            </button> */}
-                            <button onClick={() => handleAddColumn(header)}>+</button>
-                            <button onClick={() => handleMoveColumn(header, 'left')}>L</button>
-                            <button onClick={() => handleMoveColumn(header, 'right')}>R</button>
-                        </div>
-                        <div>{header}</div>
-                    </div>
-                </th>
-            ));
-    };
+    const renderTable = () => (
+        <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+            <thead>
+                <tr>
+                    {headers
+                        .filter((header) => !hiddenColumns.includes(header))
+                        .map((header) => (
+                            <th key={header} style={{ border: '1px solid black', textAlign: 'center' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    <div>
+                                        <button onClick={() => {
+                                                const newHeaderName = prompt(`Modifier l'en-tête \"${header}\" :`, header);
+                                                if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
+                                            }}
+                                        >
+                                            M
+                                        </button>
+                                        <button onClick={() => handleAddColumn(header)}>+</button>
+                                        <button onClick={() => handleMoveColumn(header, 'left')}>L</button>
+                                        <button onClick={() => handleMoveColumn(header, 'right')}>R</button>
+                                    </div>
+                                    <div>{header}</div>
+                                </div>
+                            </th>
+                        ))}
+                </tr>
+            </thead>
+            <tbody>
+                {data.map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                        {headers
+                            .filter((header) => !hiddenColumns.includes(header))
+                            .map((header) => (
+                                <td key={header} style={{ border: '1px solid black', textAlign: 'center' }}>
+                                    {row[header]}
+                                </td>
+                            ))}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
 
     const renderSheetSelector = () => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -343,22 +362,7 @@ const TableManager: React.FC = () => {
             {data.length > 0 && (
                 <div style={{ marginTop: '20px' }}>
                     <h2>Données de la feuille sélectionnée :</h2>
-                    <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', border: '1px solid black' }}>
-                        {renderTableHeaders()}
-                        <tbody>
-                            {data.map((row, index) => (
-                                <tr key={index}>
-                                    {headers
-                                        .filter((key) => !hiddenColumns.includes(key)) // Filtrer les colonnes masquées
-                                        .map((key, i) => (
-                                            <td key={i} style={{ padding: '10px' }}>
-                                                {row[key]}
-                                            </td>
-                                        ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    {renderTable()}
                 </div>
             )}
         </div>
