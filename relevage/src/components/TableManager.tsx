@@ -289,12 +289,12 @@ const TableManager: React.FC = () => {
                             >
                                 {hiddenColumns.includes(header) ? 'View' : 'Hidd'}
                             </button>
-                            <button
+                            {/* <button
                                 onClick={() => handleToggleColorizeColumn(header)}
                                 style={{ padding: '5px 10px', backgroundColor: '#D3D3D3', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
                             >
                                 {columnColors[header] ? 'Remove Colorization' : 'Colorize'}
-                            </button>
+                            </button> */}
                             <span>{header}</span>
                         </div>
                     ))}
