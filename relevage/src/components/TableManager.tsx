@@ -231,6 +231,9 @@ const TableManager: React.FC = () => {
                                                 <button onClick={() => handleAddColumn(header)}>+</button>
                                                 <button onClick={() => handleMoveColumn(header, 'left')}>←</button>
                                                 <button onClick={() => handleMoveColumn(header, 'right')}>→</button>
+                                                {index === headers.length - 1 && (
+                                                    <button onClick={() => handleAddColumn(header)}>+</button>
+                                                )}
                                             </div>
                                         )}
                                     </div>
