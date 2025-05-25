@@ -10,6 +10,7 @@ const TableManager: React.FC = () => {
     const [showActions, setShowActions] = useState<boolean>(true); // État pour afficher/masquer les actions
     const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+    const [columnColors, setColumnColors] = useState<Record<string, string>>({});
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -163,6 +164,17 @@ const TableManager: React.FC = () => {
         });
     };
 
+    const handleColorizeColumn = (header: string) => {
+        const pastelColors = [
+            '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9', '#BAE1FF'
+        ];
+        const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+        setColumnColors((prevColors) => ({
+            ...prevColors,
+            [header]: randomColor,
+        }));
+    };
+
     const filteredData = data.filter((row) =>
         Object.values(row).some((value) =>
             value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
@@ -230,6 +242,12 @@ const TableManager: React.FC = () => {
                             >
                                 {hiddenColumns.includes(header) ? 'View' : 'Hidd'}
                             </button>
+                            <button
+                                onClick={() => handleColorizeColumn(header)}
+                                style={{ padding: '5px 10px', backgroundColor: '#D3D3D3', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+                            >
+                                Colorization
+                            </button>
                             <span>{header}</span>
                         </div>
                     ))}
@@ -286,7 +304,14 @@ const TableManager: React.FC = () => {
                         {headers
                             .filter((header) => !hiddenColumns.includes(header))
                             .map((header) => (
-                                <td key={header} style={{ border: '1px solid black', textAlign: 'center' }}>
+                                <td
+                                    key={header}
+                                    style={{
+                                        border: '1px solid black',
+                                        textAlign: 'center',
+                                        backgroundColor: columnColors[header] || 'transparent',
+                                    }}
+                                >
                                     {row[header]}
                                 </td>
                             ))}
