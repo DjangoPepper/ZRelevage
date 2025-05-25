@@ -11,6 +11,7 @@ const TableManager: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
     const [columnColors, setColumnColors] = useState<Record<string, { min: number; max: number }>>({});
+    const [newColumns, setNewColumns] = useState<string[]>([]);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -129,6 +130,10 @@ const TableManager: React.FC = () => {
             const newHeaders = [...prevHeaders];
             const newColumnName = `New Column ${index}`;
             newHeaders.splice(index, 0, newColumnName);
+
+            // Ajouter la nouvelle colonne à l'état des nouvelles colonnes
+            setNewColumns((prevNewColumns) => [...prevNewColumns, newColumnName]);
+
             return newHeaders;
         });
 
@@ -355,12 +360,16 @@ const TableManager: React.FC = () => {
                                     key={header}
                                     style={{ border: '1px solid black', textAlign: 'center' }}
                                 >
-                                    <input
-                                        type="text"
-                                        value={row[header] || ''}
-                                        onChange={(e) => handleEditCell(rowIndex, header, e.target.value)}
-                                        style={{ width: '100%', border: 'none', textAlign: 'center' }}
-                                    />
+                                    {newColumns.includes(header) ? (
+                                        <input
+                                            type="text"
+                                            value={row[header] || ''}
+                                            onChange={(e) => handleEditCell(rowIndex, header, e.target.value)}
+                                            style={{ width: '100%', border: 'none', textAlign: 'center' }}
+                                        />
+                                    ) : (
+                                        row[header]
+                                    )}
                                 </td>
                             ))}
                     </tr>
