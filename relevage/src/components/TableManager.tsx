@@ -8,6 +8,7 @@ const TableManager: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [hiddenColumns, setHiddenColumns] = useState<string[]>([]); // Colonnes masquées
     const [showActions, setShowActions] = useState<boolean>(true); // État pour afficher/masquer les actions
+    const [searchQuery, setSearchQuery] = useState('');
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -143,6 +144,16 @@ const TableManager: React.FC = () => {
         );
     };
 
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
+    };
+
+    const filteredData = data.filter((row) =>
+        Object.values(row).some((value) =>
+            value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    );
+
     const renderHeaderActions = () => (
         <div style={{ marginTop: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -226,7 +237,7 @@ const TableManager: React.FC = () => {
                 </tr>
             </thead>
             <tbody>
-                {data.map((row, rowIndex) => (
+                {filteredData.map((row, rowIndex) => (
                     <tr key={rowIndex}>
                         {headers
                             .filter((header) => !hiddenColumns.includes(header))
@@ -297,6 +308,15 @@ const TableManager: React.FC = () => {
             {data.length > 0 && (
                 <div style={{ marginTop: '20px' }}>
                     <h2>Données de la feuille sélectionnée :</h2>
+                    <div style={{ marginBottom: '20px' }}>
+                        <input
+                            type="text"
+                            placeholder="Rechercher une valeur..."
+                            value={searchQuery}
+                            onChange={(e) => handleSearch(e.target.value)}
+                            style={{ padding: '5px', width: '100%', border: '1px solid #ccc', borderRadius: '5px' }}
+                        />
+                    </div>
                     {renderTable()}
                 </div>
             )}
