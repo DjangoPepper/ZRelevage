@@ -219,18 +219,19 @@ const TableManager: React.FC = () => {
                             <th key={header} style={{ fontSize: '1.2em', fontWeight: 'bold', textDecoration: 'underline', fontFamily: 'Arial, sans-serif', textTransform: 'uppercase' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <div>
-                                        <button onClick={() => {
-                                                const newHeaderName = prompt(`Modifier l'en-tête \"${header}\" :`, header);
-                                                if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
-                                            }}
-                                        >
-                                            M
-                                        </button>
-                                        <button onClick={() => handleAddColumn(header)}>+</button>
-                                        <button onClick={() => handleMoveColumn(header, 'left')}>←</button>
-                                        <button onClick={() => handleMoveColumn(header, 'right')}>→</button>
-                                        {index === headers.length - 1 && (
-                                            <button onClick={() => handleAddColumn(header)}>+</button>
+                                        {showActions && (
+                                            <div>
+                                                <button onClick={() => {
+                                                        const newHeaderName = prompt(`Modifier l'en-tête \"${header}\" :`, header);
+                                                        if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
+                                                    }}
+                                                >
+                                                    M
+                                                </button>
+                                                <button onClick={() => handleAddColumn(header)}>+</button>
+                                                <button onClick={() => handleMoveColumn(header, 'left')}>←</button>
+                                                <button onClick={() => handleMoveColumn(header, 'right')}>→</button>
+                                            </div>
                                         )}
                                     </div>
                                     <div>{header}</div>
