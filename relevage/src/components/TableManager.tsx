@@ -205,21 +205,20 @@ const TableManager: React.FC = () => {
                     {headers
                         .filter((header) => !hiddenColumns.includes(header))
                         .map((header) => (
-                            <th key={header} style={{ border: '1px solid black', textAlign: 'center' }}>
+                            <th key={header} style={{ fontSize: '1.2em', fontWeight: 'bold', textDecoration: 'underline', fontFamily: 'Arial, sans-serif', textTransform: 'uppercase' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <div>
-                                        {/* <button onClick={() => {
+                                        <button onClick={() => {
                                                 const newHeaderName = prompt(`Modifier l'en-tête \"${header}\" :`, header);
                                                 if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
                                             }}
                                         >
                                             M
-                                        </button> */}
+                                        </button>
                                         <button onClick={() => handleAddColumn(header)}>+</button>
-                                        <button onClick={() => handleMoveColumn(header, 'left')}>L</button>
-                                        <button onClick={() => handleMoveColumn(header, 'right')}>R</button>
+                                        <button onClick={() => handleMoveColumn(header, 'left')}>←</button>
+                                        <button onClick={() => handleMoveColumn(header, 'right')}>→</button>
                                     </div>
-                                    <hr style={{ width: '100%', border: '1px solid #ccc' }} />
                                     <div>{header}</div>
                                 </div>
                             </th>
