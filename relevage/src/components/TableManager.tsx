@@ -148,6 +148,23 @@ const TableManager: React.FC = () => {
         setSearchQuery(query);
     };
 
+    const handleSort = (headerName: string) => {
+        const isAscending = data[0] && data[0][headerName] !== undefined && typeof data[0][headerName] === 'string'
+            ? data.every((row) => row[headerName] >= row[headerName])
+            : true;
+
+        setData((prevData) =>
+            [...prevData].sort((a, b) => {
+                if (a[headerName] === b[headerName]) return 0;
+                if (a[headerName] == null) return isAscending ? 1 : -1;
+                if (b[headerName] == null) return isAscending ? -1 : 1;
+                return isAscending
+                    ? a[headerName] > b[headerName] ? 1 : -1
+                    : a[headerName] < b[headerName] ? 1 : -1;
+            })
+        );
+    };
+
     const filteredData = data.filter((row) =>
         Object.values(row).some((value) =>
             value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
@@ -237,7 +254,15 @@ const TableManager: React.FC = () => {
                                             </div>
                                         )}
                                     </div>
-                                    <div>{header}</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <span>{header}</span>
+                                        <button
+                                            onClick={() => handleSort(header)}
+                                            style={{ padding: '2px 5px', marginLeft: '5px', backgroundColor: '#007BFF', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                                        >
+                                            ⇅
+                                        </button>
+                                    </div>
                                 </div>
                             </th>
                         ))}
