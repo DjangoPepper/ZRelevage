@@ -7,6 +7,7 @@ const TableManager: React.FC = () => {
     const [headers, setHeaders] = useState<string[]>([]); // Nouveaux en-têtes
     const [error, setError] = useState<string | null>(null);
     const [hiddenColumns, setHiddenColumns] = useState<string[]>([]); // Colonnes masquées
+    const [showActions, setShowActions] = useState<boolean>(true); // État pour afficher/masquer les actions
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -144,122 +145,56 @@ const TableManager: React.FC = () => {
 
     const renderHeaderActions = () => (
         <div style={{ marginTop: '20px' }}>
-            <h3>Actions sur les en-têtes :</h3>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        {/* <button
-                            onClick={() => {
-                                const newHeaderName = prompt('Nom du nouvel en-tête :');
-                                if (newHeaderName) handleHeaderAction('add', undefined, newHeaderName);
-                            }}
-                            style={{
-                                padding: '5px 10px',
-                                backgroundColor: 'green',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            ADdz
-                        </button> */}
-                {headers.map((header) => (
-                    
-                    <div key={header} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        {/* <button
-                            onClick={() => {
-                                const newHeaderName = prompt('Nom du nouvel en-tête :');
-                                if (newHeaderName) handleHeaderAction('add', undefined, newHeaderName);
-                            }}
-                            style={{
-                                padding: '5px 10px',
-                                backgroundColor: 'green',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            ADdz
-                        </button> */}
-                        &nbsp;
-                        &nbsp;
-                        <button
-                            onClick={() => {
-                                const newHeaderName = prompt(`Modifier l'en-tête "${header}" :`, header);
-                                if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
-                            }}
-                            style={{
-                                padding: '5px 10px',
-                                backgroundColor: '#007BFF',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            MOd
-                        </button>
-                        <button
-                            onClick={() => handleHeaderAction('hidde', header)}
-                            style={{
-                                padding: '5px 10px',
-                                backgroundColor: hiddenColumns.includes(header) ? '#d3d3d3' : '#FF5733',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            {hiddenColumns.includes(header) ? 'View' : 'Hidd'}
-                        </button>
-                        {/* <button
-                            onClick={() => handleMoveColumn(header, 'left')}
-                            style={{
-                                padding: '5px 10px',
-                                backgroundColor: '#007BFF',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                            }}
-                            disabled={headers.indexOf(header) === 0} // Disable if it's the first column
-                        >
-                            ←
-                        </button>
-                        <button
-                            onClick={() => handleMoveColumn(header, 'right')}
-                            style={{
-                                padding: '5px 10px',
-                                backgroundColor: '#007BFF',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                            }}
-                            disabled={headers.indexOf(header) === headers.length - 1} // Disable if it's the last column
-                        >
-                            →
-                        </button> */}
-                        <span>{header}</span>
-                    </div>
-                ))}
-{/*                 <button
-                    onClick={() => {
-                        const newHeaderName = prompt('Nom du nouvel en-tête :');
-                        if (newHeaderName) handleHeaderAction('add', undefined, newHeaderName);
-                    }}
-                    style={{
-                        padding: '5px 10px',
-                        backgroundColor: 'green',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                    }}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h3 style={{ margin: 0 }}>Actions sur les en-têtes :</h3>
+                <button
+                    onClick={() => setShowActions((prev) => !prev)}
+                    style={{ padding: '5px 10px', backgroundColor: '#007BFF', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
                 >
-                    ADd
-                </button> */}
+                    Toggle
+                </button>
+                <hr style={{ width: '100%', border: '1px solid #ccc' }} />
             </div>
+            {showActions && (
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    {headers.map((header) => (
+                        <div key={header} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            &nbsp;
+                            &nbsp;
+                            <button
+                                onClick={() => {
+                                    const newHeaderName = prompt(`Modifier l'en-tête "${header}" :`, header);
+                                    if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
+                                }}
+                                style={{
+                                    padding: '5px 10px',
+                                    backgroundColor: '#007BFF',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                MOd
+                            </button>
+                            <button
+                                onClick={() => handleHeaderAction('hidde', header)}
+                                style={{
+                                    padding: '5px 10px',
+                                    backgroundColor: hiddenColumns.includes(header) ? '#d3d3d3' : '#FF5733',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                {hiddenColumns.includes(header) ? 'View' : 'Hidd'}
+                            </button>
+                            <span>{header}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 
