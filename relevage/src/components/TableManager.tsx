@@ -370,7 +370,7 @@ const TableManager: React.FC = () => {
                                             >
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                     {header}
-                                                    {!showColumnActions && ( // Affiche le bouton de tri uniquement si `showColumnActions` est false
+                                                    {!showColumnActions && (
                                                         <button
                                                             onClick={() => toggleColumnSortOrder(header)}
                                                             style={{
@@ -391,6 +391,41 @@ const TableManager: React.FC = () => {
                                                     )}
                                                     {showColumnActions && (
                                                         <>
+                                                            <button
+                                                                onClick={() => {
+                                                                    // Permute la colonne active avec celle de gauche
+                                                                    const activeIndex = headers.indexOf(header);
+                                                                    if (activeIndex > 0) {
+                                                                        const newHeaders = [...headers];
+                                                                        [newHeaders[activeIndex], newHeaders[activeIndex - 1]] = [
+                                                                            newHeaders[activeIndex - 1],
+                                                                            newHeaders[activeIndex],
+                                                                        ];
+
+                                                                        const updatedData = data.map((row) => {
+                                                                            const newRow = { ...row };
+                                                                            [newRow[headers[activeIndex]], newRow[headers[activeIndex - 1]]] = [
+                                                                                newRow[headers[activeIndex - 1]],
+                                                                                newRow[headers[activeIndex]],
+                                                                            ];
+                                                                            return newRow;
+                                                                        });
+
+                                                                        setHeaders(newHeaders);
+                                                                        setData(updatedData);
+                                                                    }
+                                                                }}
+                                                                style={{
+                                                                    padding: '5px',
+                                                                    backgroundColor: '#ffc107',
+                                                                    color: 'white',
+                                                                    border: 'none',
+                                                                    borderRadius: '3px',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                            >
+                                                                ←
+                                                            </button>
                                                             <button
                                                                 onClick={() => {
                                                                     // Ajoute une colonne à droite de la colonne active
@@ -452,41 +487,6 @@ const TableManager: React.FC = () => {
                                                                 }}
                                                             >
                                                                 →
-                                                            </button>
-                                                            <button
-                                                                onClick={() => {
-                                                                    // Permute la colonne active avec celle de gauche
-                                                                    const activeIndex = headers.indexOf(header);
-                                                                    if (activeIndex > 0) {
-                                                                        const newHeaders = [...headers];
-                                                                        [newHeaders[activeIndex], newHeaders[activeIndex - 1]] = [
-                                                                            newHeaders[activeIndex - 1],
-                                                                            newHeaders[activeIndex],
-                                                                        ];
-
-                                                                        const updatedData = data.map((row) => {
-                                                                            const newRow = { ...row };
-                                                                            [newRow[headers[activeIndex]], newRow[headers[activeIndex - 1]]] = [
-                                                                                newRow[headers[activeIndex - 1]],
-                                                                                newRow[headers[activeIndex]],
-                                                                            ];
-                                                                            return newRow;
-                                                                        });
-
-                                                                        setHeaders(newHeaders);
-                                                                        setData(updatedData);
-                                                                    }
-                                                                }}
-                                                                style={{
-                                                                    padding: '5px',
-                                                                    backgroundColor: '#ffc107',
-                                                                    color: 'white',
-                                                                    border: 'none',
-                                                                    borderRadius: '3px',
-                                                                    cursor: 'pointer',
-                                                                }}
-                                                            >
-                                                                ←
                                                             </button>
                                                         </>
                                                     )}
