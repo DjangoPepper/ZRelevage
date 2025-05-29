@@ -17,8 +17,12 @@ const TableManager: React.FC = () => {
     const [showSheets, setShowSheets] = useState<boolean>(true); // Afficher/Masquer les feuilles disponibles
     const [showColumnActions, setShowColumnActions] = useState<boolean>(true); // Afficher/Masquer les actions sur les colonnes
     const [isModalOpen, setIsModalOpen] = useState(false); // État pour la visibilité du modal
+    const [isSpecialModalOpen, setIsSpecialModalOpen] = useState(false); // État pour la visibilité du modal spécial
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const [selectedColumnValue, setSelectedColumnValue] = useState<string | null>(null);
+    const [modifiedValue, setModifiedValue] = useState<string | null>(null);
 
     // Fonction pour extraire le nom du fichier sans extension
     const extractFileName = (file: File): string => {
@@ -281,6 +285,75 @@ const TableManager: React.FC = () => {
         return { backgroundColor, textColor };
     };
 
+    const openSpecialModal = (header: string) => {
+        const columnValues = data.map((row) => row[header]).filter((value) => typeof value === 'string');
+        if (columnValues.length > 0) {
+            const randomValue = columnValues[Math.floor(Math.random() * columnValues.length)];
+            setSelectedColumnValue(randomValue);
+            setModifiedValue(randomValue.split('').join('•')); // Ajoute des puces entre les caractères
+            setIsSpecialModalOpen(true);
+        } else {
+            alert('Les valeurs de cette colonne ne sont pas alphanumériques.');
+        }
+    };
+
+    const SpecialModal: React.FC<{ isOpen: boolean; onClose: () => void; value: string | null }> = ({
+        isOpen,
+        onClose,
+        value,
+    }) => {
+        if (!isOpen || !value) return null;
+
+        const handleTogglePuce = (index: number) => {
+            const chars = value.split('');
+            chars.splice(index + 1, 0, ' '); // Insère un espace après le caractère sélectionné
+            setModifiedValue(chars.join('•'));
+        };
+
+        return (
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+            >
+                <div
+                    style={{
+                        backgroundColor: 'white',
+                        padding: '20px',
+                        borderRadius: '5px',
+                        width: '400px',
+                        textAlign: 'center',
+                    }}
+                >
+                    <h3>Exemple avec puces</h3>
+                    <div style={{ marginBottom: '10px' }}>
+                        {modifiedValue?.split('•').map((char, index) => (
+                            <span key={index} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                                {char}
+                                <input
+                                    type="checkbox"
+                                    onChange={() => handleTogglePuce(index)}
+                                    style={{ marginLeft: '5px' }}
+                                />
+                            </span>
+                        ))}
+                    </div>
+                    <button onClick={onClose} style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white' }}>
+                        Fermer
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
@@ -387,6 +460,20 @@ const TableManager: React.FC = () => {
                                                 style={{ cursor: 'pointer' }}
                                             />
                                         )}
+                                        {/* Nouveau bouton `_` */}
+                                        <button
+                                            onClick={() => openSpecialModal(header)}
+                                            style={{
+                                                padding: '5px',
+                                                backgroundColor: '#6c757d',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '3px',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            _
+                                        </button>
                                     </div>
                                 );
                             })}
@@ -615,6 +702,11 @@ const TableManager: React.FC = () => {
                 onClose={closeModal}
                 onSave={saveCellEdit}
                 value={editingCell?.value || ''}
+            />
+            <SpecialModal
+                isOpen={isSpecialModalOpen}
+                onClose={() => setIsSpecialModalOpen(false)}
+                value={selectedColumnValue}
             />
         </div>
     );
