@@ -350,114 +350,14 @@ const TableManager: React.FC = () => {
                                                     border: '1px solid #ddd',
                                                     padding: '8px',
                                                     textAlign: 'left',
-                                                    backgroundColor: columnColors[header] || 'transparent', // Applique la couleur principale comme fond
-                                                    color: columnColors[header] ? '#fff' : '#000', // Texte blanc si une couleur est définie, sinon noir
+                                                    backgroundColor: columnColors[header] || 'transparent',
+                                                    color: columnColors[header] ? '#fff' : '#000',
                                                 }}
                                             >
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                     {header}
-                                                    {/* ici */}
-                                                                                                        {/* ici */}
                                                     <button
-                                                        onClick={() => {
-                                                            // Ajoute une colonne à droite de la colonne active
-                                                            const newHeaders = [...headers];
-                                                            const activeIndex = headers.indexOf(header);
-                                                            const newColumnName = `Nouvelle colonne ${newHeaders.length + 1}`;
-                                                            newHeaders.splice(activeIndex + 1, 0, newColumnName);
-                                                    
-                                                            const updatedData = data.map((row) => ({
-                                                                ...row,
-                                                                [newColumnName]: '', // Ajoute une colonne vide
-                                                            }));
-                                                    
-                                                            setHeaders(newHeaders);
-                                                            setData(updatedData);
-                                                        }}
-                                                        style={{
-                                                            padding: '5px',
-                                                            backgroundColor: '#28a745',
-                                                            color: 'white',
-                                                            border: 'none',
-                                                            borderRadius: '3px',
-                                                            cursor: 'pointer',
-                                                        }}
-                                                    >
-                                                        {/* ↓ */}
-                                                        + 
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            // Permute la colonne active avec celle de droite
-                                                            const activeIndex = headers.indexOf(header);
-                                                            if (activeIndex < headers.length - 1) {
-                                                                const newHeaders = [...headers];
-                                                                [newHeaders[activeIndex], newHeaders[activeIndex + 1]] = [
-                                                                    newHeaders[activeIndex + 1],
-                                                                    newHeaders[activeIndex],
-                                                                ];
-                                                    
-                                                                const updatedData = data.map((row) => {
-                                                                    const newRow = { ...row };
-                                                                    [newRow[headers[activeIndex]], newRow[headers[activeIndex + 1]]] = [
-                                                                        newRow[headers[activeIndex + 1]],
-                                                                        newRow[headers[activeIndex]],
-                                                                    ];
-                                                                    return newRow;
-                                                                });
-                                                    
-                                                                setHeaders(newHeaders);
-                                                                setData(updatedData);
-                                                            }
-                                                        }}
-                                                        style={{
-                                                            padding: '5px',
-                                                            backgroundColor: '#007bff',
-                                                            color: 'white',
-                                                            border: 'none',
-                                                            borderRadius: '3px',
-                                                            cursor: 'pointer',
-                                                        }}
-                                                    >
-                                                        →
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            // Permute la colonne active avec celle de gauche
-                                                            const activeIndex = headers.indexOf(header);
-                                                            if (activeIndex > 0) {
-                                                                const newHeaders = [...headers];
-                                                                [newHeaders[activeIndex], newHeaders[activeIndex - 1]] = [
-                                                                    newHeaders[activeIndex - 1],
-                                                                    newHeaders[activeIndex],
-                                                                ];
-                                                    
-                                                                const updatedData = data.map((row) => {
-                                                                    const newRow = { ...row };
-                                                                    [newRow[headers[activeIndex]], newRow[headers[activeIndex - 1]]] = [
-                                                                        newRow[headers[activeIndex - 1]],
-                                                                        newRow[headers[activeIndex]],
-                                                                    ];
-                                                                    return newRow;
-                                                                });
-                                                    
-                                                                setHeaders(newHeaders);
-                                                                setData(updatedData);
-                                                            }
-                                                        }}
-                                                        style={{
-                                                            padding: '5px',
-                                                            backgroundColor: '#ffc107',
-                                                            color: 'white',
-                                                            border: 'none',
-                                                            borderRadius: '3px',
-                                                            cursor: 'pointer',
-                                                        }}
-                                                    >
-                                                        ←
-                                                    </button>
-                                                    <button
-/*                                                         onClick={() => toggleColumnSortOrder(header)}
+                                                        onClick={() => toggleColumnSortOrder(header)}
                                                         style={{
                                                             padding: '5px',
                                                             backgroundColor: '#007BFF',
@@ -465,18 +365,111 @@ const TableManager: React.FC = () => {
                                                             border: 'none',
                                                             borderRadius: '3px',
                                                             cursor: 'pointer',
-                                                        }} */
+                                                        }}
                                                     >
                                                         {columnSortOrder[header] === 'asc' ? '↓' : '↑'}
                                                     </button>
-                                                    {/* <input
-                                                        type="color"
-                                                        onChange={(e) =>
-                                                            setColumnColors((prev) => ({ ...prev, [header]: e.target.value }))
-                                                        }
-                                                        value={columnColors[header] || '#ffffff'}
-                                                        style={{ cursor: 'pointer' }}
-                                                    /> */}
+                                                    {showColumnActions && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => {
+                                                                    // Ajoute une colonne à droite de la colonne active
+                                                                    const newHeaders = [...headers];
+                                                                    const activeIndex = headers.indexOf(header);
+                                                                    const newColumnName = `Nouvelle colonne ${newHeaders.length + 1}`;
+                                                                    newHeaders.splice(activeIndex + 1, 0, newColumnName);
+
+                                                                    const updatedData = data.map((row) => ({
+                                                                        ...row,
+                                                                        [newColumnName]: '', // Ajoute une colonne vide
+                                                                    }));
+
+                                                                    setHeaders(newHeaders);
+                                                                    setData(updatedData);
+                                                                }}
+                                                                style={{
+                                                                    padding: '5px',
+                                                                    backgroundColor: '#28a745',
+                                                                    color: 'white',
+                                                                    border: 'none',
+                                                                    borderRadius: '3px',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                            >
+                                                                +
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    // Permute la colonne active avec celle de droite
+                                                                    const activeIndex = headers.indexOf(header);
+                                                                    if (activeIndex < headers.length - 1) {
+                                                                        const newHeaders = [...headers];
+                                                                        [newHeaders[activeIndex], newHeaders[activeIndex + 1]] = [
+                                                                            newHeaders[activeIndex + 1],
+                                                                            newHeaders[activeIndex],
+                                                                        ];
+
+                                                                        const updatedData = data.map((row) => {
+                                                                            const newRow = { ...row };
+                                                                            [newRow[headers[activeIndex]], newRow[headers[activeIndex + 1]]] = [
+                                                                                newRow[headers[activeIndex + 1]],
+                                                                                newRow[headers[activeIndex]],
+                                                                            ];
+                                                                            return newRow;
+                                                                        });
+
+                                                                        setHeaders(newHeaders);
+                                                                        setData(updatedData);
+                                                                    }
+                                                                }}
+                                                                style={{
+                                                                    padding: '5px',
+                                                                    backgroundColor: '#007bff',
+                                                                    color: 'white',
+                                                                    border: 'none',
+                                                                    borderRadius: '3px',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                            >
+                                                                →
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    // Permute la colonne active avec celle de gauche
+                                                                    const activeIndex = headers.indexOf(header);
+                                                                    if (activeIndex > 0) {
+                                                                        const newHeaders = [...headers];
+                                                                        [newHeaders[activeIndex], newHeaders[activeIndex - 1]] = [
+                                                                            newHeaders[activeIndex - 1],
+                                                                            newHeaders[activeIndex],
+                                                                        ];
+
+                                                                        const updatedData = data.map((row) => {
+                                                                            const newRow = { ...row };
+                                                                            [newRow[headers[activeIndex]], newRow[headers[activeIndex - 1]]] = [
+                                                                                newRow[headers[activeIndex - 1]],
+                                                                                newRow[headers[activeIndex]],
+                                                                            ];
+                                                                            return newRow;
+                                                                        });
+
+                                                                        setHeaders(newHeaders);
+                                                                        setData(updatedData);
+                                                                    }
+                                                                }}
+                                                                style={{
+                                                                    padding: '5px',
+                                                                    backgroundColor: '#ffc107',
+                                                                    color: 'white',
+                                                                    border: 'none',
+                                                                    borderRadius: '3px',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                            >
+                                                                ←
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </th>
                                         )
