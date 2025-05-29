@@ -266,6 +266,20 @@ const TableManager: React.FC = () => {
         return rgbToHex(r, g, b);
     };
 
+    const generateUniqueGray = (header: string): { backgroundColor: string; textColor: string } => {
+        let hash = 0;
+        for (let i = 0; i < header.length; i++) {
+            hash = header.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const grayValue = Math.abs(hash % 200) + 30; // Génère une valeur entre 30 et 230
+        const backgroundColor = `rgb(${grayValue}, ${grayValue}, ${grayValue})`;
+
+        // Détermine si le gris est sombre (luminosité < 128)
+        const textColor = grayValue < 128 ? '#fff' : '#000';
+
+        return { backgroundColor, textColor };
+    };
+
     return (
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
@@ -315,66 +329,66 @@ const TableManager: React.FC = () => {
                 <div style={{ marginTop: '20px' }}>
                     <h3 style={{ margin: 0 }}>Colonnes :</h3>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        {headers.map((header, index) => (
-                            <div key={header} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <div
-                                    style={{ cursor: 'pointer', padding: '5px', border: '1px solid #ddd' }}
-                                    onClick={() => openModal(null, header, header)} // Ouvre le modal pour modifier le nom de la colonne
-                                >
-                                    {header}
-                                </div>
-                                <button
-                                    onClick={() => toggleColumnVisibility(header)}
-                                    // style={{
-                                    //     padding: '5px 10px',
-                                    //     backgroundColor: '#007BFF',
-                                    //     color: 'white',
-                                    //     border: 'none',
-                                    //     borderRadius: '3px',
-                                    //     cursor: 'pointer',
-                                    // }}
-                                >
-                                    {hiddenColumns.includes(header) ? 'Afficher' : 'Masquer'}
-                                </button>
-                                <input
-                                    type="color"
-                                    onChange={(e) => {
-                                        const newColor = e.target.value;
-                                        setColumnColors((prev) => ({ ...prev, [header]: newColor }));
-                                        setOppositeColors((prev) => ({ ...prev, [header]: getOppositeColor(newColor) }));
-                                    }}
-                                    value={columnColors[header] || '#ffffff'}
-                                />
-                                {oppositeColors[header] && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                        <input
-                                            type="color"
-                                            onChange={(e) => {
-                                                const newOppositeColor = e.target.value;
-                                                setOppositeColors((prev) => ({ ...prev, [header]: newOppositeColor }));
-                                            }}
-                                            value={oppositeColors[header]}
+                        {headers
+                            .filter((header) => header !== 'OriginalOrdre') // Exclut la colonne `OriginalOrdre`
+                            .map((header, index) => {
+                                const { backgroundColor, textColor } = generateUniqueGray(header);
+                                return (
+                                    <div
+                                        key={header}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                            backgroundColor,
+                                            color: textColor, // Applique la couleur du texte
+                                            padding: '5px',
+                                            border: '1px solid #ddd',
+                                            borderRadius: '3px',
+                                        }}
+                                    >
+                                        <div
                                             style={{ cursor: 'pointer' }}
-                                        />
-{/*                                         <button
+                                            onClick={() => openModal(null, header, header)} // Ouvre le modal pour modifier le nom de la colonne
+                                        >
+                                            {header}
+                                        </div>
+                                        <button
+                                            onClick={() => toggleColumnVisibility(header)}
                                             style={{
-                                                padding: '5px 10px',
-                                                backgroundColor: oppositeColors[header],
-                                                color: '#fff',
+                                                padding: '5px',
+                                                backgroundColor: '#007BFF',
+                                                color: 'white',
                                                 border: 'none',
                                                 borderRadius: '3px',
                                                 cursor: 'pointer',
                                             }}
-                                            onClick={() => alert(`Couleur opposée : ${oppositeColors[header]}`)}
                                         >
-                                            Couleur opposée
-                                        </button> */}
-                                        &nbsp;&nbsp;
-                                        {/* {oppositeColors[header]} */}
+                                            {hiddenColumns.includes(header) ? 'Afficher' : 'Masquer'}
+                                        </button>
+                                        <input
+                                            type="color"
+                                            onChange={(e) => {
+                                                const newColor = e.target.value;
+                                                setColumnColors((prev) => ({ ...prev, [header]: newColor }));
+                                                setOppositeColors((prev) => ({ ...prev, [header]: getOppositeColor(newColor) }));
+                                            }}
+                                            value={columnColors[header] || '#ffffff'}
+                                        />
+                                        {oppositeColors[header] && (
+                                            <input
+                                                type="color"
+                                                onChange={(e) => {
+                                                    const newOppositeColor = e.target.value;
+                                                    setOppositeColors((prev) => ({ ...prev, [header]: newOppositeColor }));
+                                                }}
+                                                value={oppositeColors[header]}
+                                                style={{ cursor: 'pointer' }}
+                                            />
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                        ))}
+                                );
+                            })}
                     </div>
                 </div>
             )}
