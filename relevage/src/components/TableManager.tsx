@@ -396,11 +396,17 @@ const TableManager: React.FC = () => {
             {data.length > 0 && (
                 <div style={{ marginTop: '20px' }}>
                     <h2>Données de la feuille sélectionnée :</h2>
-                    <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                    <table
+                        style={{
+                            borderCollapse: 'collapse',
+                            width: '100%',
+                            tableLayout: 'fixed', // Force une largeur fixe pour les colonnes
+                        }}
+                    >
                         <thead>
                             <tr>
                                 {headers.map(
-                                    (header) =>
+                                    (header, index) =>
                                         !hiddenColumns.includes(header) && (
                                             <th
                                                 key={header}
@@ -410,11 +416,12 @@ const TableManager: React.FC = () => {
                                                     textAlign: 'left',
                                                     backgroundColor: columnColors[header] || 'transparent',
                                                     color: columnColors[header] ? '#fff' : '#000',
+                                                    width: `${100 / headers.length}%`, // Divise la largeur de manière égale entre les colonnes
                                                 }}
                                             >
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                     {header}
-                                                    {!showColumnActions && (
+                                                    {!showColumnActions && ( // Affiche le bouton de tri uniquement si `showColumnActions` est false
                                                         <button
                                                             onClick={() => toggleColumnSortOrder(header)}
                                                             style={{
@@ -438,19 +445,18 @@ const TableManager: React.FC = () => {
                                                             <button
                                                                 onClick={() => {
                                                                     // Permute la colonne active avec celle de gauche
-                                                                    const activeIndex = headers.indexOf(header);
-                                                                    if (activeIndex > 0) {
+                                                                    if (index > 0) {
                                                                         const newHeaders = [...headers];
-                                                                        [newHeaders[activeIndex], newHeaders[activeIndex - 1]] = [
-                                                                            newHeaders[activeIndex - 1],
-                                                                            newHeaders[activeIndex],
+                                                                        [newHeaders[index], newHeaders[index - 1]] = [
+                                                                            newHeaders[index - 1],
+                                                                            newHeaders[index],
                                                                         ];
 
                                                                         const updatedData = data.map((row) => {
                                                                             const newRow = { ...row };
-                                                                            [newRow[headers[activeIndex]], newRow[headers[activeIndex - 1]]] = [
-                                                                                newRow[headers[activeIndex - 1]],
-                                                                                newRow[headers[activeIndex]],
+                                                                            [newRow[headers[index]], newRow[headers[index - 1]]] = [
+                                                                                newRow[headers[index - 1]],
+                                                                                newRow[headers[index]],
                                                                             ];
                                                                             return newRow;
                                                                         });
@@ -474,9 +480,8 @@ const TableManager: React.FC = () => {
                                                                 onClick={() => {
                                                                     // Ajoute une colonne à droite de la colonne active
                                                                     const newHeaders = [...headers];
-                                                                    const activeIndex = headers.indexOf(header);
                                                                     const newColumnName = `Nouvelle colonne ${newHeaders.length + 1}`;
-                                                                    newHeaders.splice(activeIndex + 1, 0, newColumnName);
+                                                                    newHeaders.splice(index + 1, 0, newColumnName);
 
                                                                     const updatedData = data.map((row) => ({
                                                                         ...row,
@@ -500,19 +505,18 @@ const TableManager: React.FC = () => {
                                                             <button
                                                                 onClick={() => {
                                                                     // Permute la colonne active avec celle de droite
-                                                                    const activeIndex = headers.indexOf(header);
-                                                                    if (activeIndex < headers.length - 1) {
+                                                                    if (index < headers.length - 1) {
                                                                         const newHeaders = [...headers];
-                                                                        [newHeaders[activeIndex], newHeaders[activeIndex + 1]] = [
-                                                                            newHeaders[activeIndex + 1],
-                                                                            newHeaders[activeIndex],
+                                                                        [newHeaders[index], newHeaders[index + 1]] = [
+                                                                            newHeaders[index + 1],
+                                                                            newHeaders[index],
                                                                         ];
 
                                                                         const updatedData = data.map((row) => {
                                                                             const newRow = { ...row };
-                                                                            [newRow[headers[activeIndex]], newRow[headers[activeIndex + 1]]] = [
-                                                                                newRow[headers[activeIndex + 1]],
-                                                                                newRow[headers[activeIndex]],
+                                                                            [newRow[headers[index]], newRow[headers[index + 1]]] = [
+                                                                                newRow[headers[index + 1]],
+                                                                                newRow[headers[index]],
                                                                             ];
                                                                             return newRow;
                                                                         });
@@ -551,7 +555,8 @@ const TableManager: React.FC = () => {
                                                     style={{
                                                         border: '1px solid #ddd',
                                                         padding: '8px',
-                                                        cursor: 'pointer',
+                                                        textAlign: 'left',
+                                                        width: `${100 / headers.length}%`, // Assure une largeur égale pour les cellules
                                                         background: (() => {
                                                             if (oppositeColors[header] && columnColors[header]) {
                                                                 const { min, max } = calculateMinMax(header);
