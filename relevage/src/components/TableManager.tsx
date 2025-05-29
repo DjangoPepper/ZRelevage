@@ -308,8 +308,8 @@ const TableManager: React.FC = () => {
             setModifiedValue((prev) =>
                 prev
                     ? prev.map((item, i) =>
-                        i === index ? { ...item, checked: !item.checked } : item
-                    )
+                          i === index ? { ...item, checked: !item.checked } : item
+                      )
                     : null
             );
         };
@@ -338,20 +338,50 @@ const TableManager: React.FC = () => {
                     }}
                 >
                     <h3>Exemple avec cases à cocher</h3>
-                    <div style={{ marginBottom: '10px' }}>
+                    <div style={{ marginBottom: '10px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                         {modifiedValue.map((item, index) => (
-                            <span key={index} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                                {item.char}
-                                <input
-                                    type="checkbox"
-                                    checked={item.checked}
-                                    onChange={() => handleToggleCheckbox(index)}
-                                    style={{ marginLeft: '5px' }}
-                                />
-                            </span>
+                            index < modifiedValue.length - 1 && ( // Ne pas afficher une checkbox après le dernier caractère
+                                <span
+                                    key={index}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '10px',
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            fontSize: '20px', // Agrandit les caractères
+                                            fontWeight: 'bold',
+                                        }}
+                                    >
+                                        {item.char}
+                                    </span>
+                                    <input
+                                        type="checkbox"
+                                        checked={item.checked}
+                                        onChange={() => handleToggleCheckbox(index)}
+                                        style={{
+                                            width: '16px', // Taille standard pour la checkbox
+                                            height: '16px',
+                                            cursor: 'pointer',
+                                        }}
+                                    />
+                                </span>
+                            )
                         ))}
                     </div>
-                    <button onClick={onClose} style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white' }}>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            padding: '10px',
+                            backgroundColor: '#007BFF',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                        }}
+                    >
                         Fermer
                     </button>
                 </div>
