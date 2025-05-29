@@ -402,10 +402,18 @@ const TableManager: React.FC = () => {
                             placeholder="Rechercher..."
                             onChange={(e) => {
                                 const searchTerm = e.target.value.toLowerCase();
-                                const filteredData = data.filter((row) =>
-                                    headers.some((header) => String(row[header]).toLowerCase().includes(searchTerm))
-                                );
-                                setData(filteredData);
+                                if (searchTerm === '') {
+                                    // Réinitialise les données si le champ de recherche est vide
+                                    const file = fileInputRef.current?.files?.[0];
+                                    if (file && selectedSheet) {
+                                        handleSheetSelect(selectedSheet); // Recharge les données de la feuille sélectionnée
+                                    }
+                                } else {
+                                    const filteredData = data.filter((row) =>
+                                        headers.some((header) => String(row[header]).toLowerCase().includes(searchTerm))
+                                    );
+                                    setData(filteredData);
+                                }
                             }}
                             style={{
                                 padding: '5px',
