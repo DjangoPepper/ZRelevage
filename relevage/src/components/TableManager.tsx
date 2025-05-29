@@ -286,14 +286,21 @@ const TableManager: React.FC = () => {
     };
 
     const openSpecialModal = (header: string) => {
-        const columnValues = data.map((row) => row[header]).filter((value) => typeof value === 'string');
+        const columnValues = data
+            .map((row) => row[header])
+            .filter(
+                (value) =>
+                    (typeof value === 'string' && /^[a-zA-Z0-9]+$/.test(value)) || // Vérifie si c'est une chaîne alphanumérique
+                    (typeof value === 'number' && Number.isInteger(value)) // Vérifie si c'est un entier
+            );
+
         if (columnValues.length > 0) {
             const randomValue = columnValues[Math.floor(Math.random() * columnValues.length)];
-            setSelectedColumnValue(randomValue);
-            setModifiedValue(randomValue.split('').map((char) => ({ char, checked: false }))); // Ajoute un état pour chaque caractère
+            setSelectedColumnValue(String(randomValue)); // Convertit en chaîne si c'est un entier
+            setModifiedValue(String(randomValue).split('').map((char) => ({ char, checked: false }))); // Ajoute un état pour chaque caractère
             setIsSpecialModalOpen(true);
         } else {
-            alert('Les valeurs de cette colonne ne sont pas alphanumériques.');
+            alert('Les valeurs de cette colonne ne sont ni alphanumériques ni des entiers.');
         }
     };
 
@@ -335,10 +342,13 @@ const TableManager: React.FC = () => {
                         borderRadius: '5px',
                         width: '400px',
                         textAlign: 'center',
+                        whiteSpace: 'nowrap', // Empêche le retour à la ligne
+                        overflow: 'hidden', // Empêche le débordement
+                        textOverflow: 'ellipsis', // Ajoute des points de suspension si le texte dépasse
                     }}
                 >
                     <h3>Exemple avec cases à cocher</h3>
-                    <div style={{ marginBottom: '10px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {modifiedValue.map((item, index) => (
                             index < modifiedValue.length - 1 && ( // Ne pas afficher une checkbox après le dernier caractère
                                 <span
@@ -346,7 +356,7 @@ const TableManager: React.FC = () => {
                                     style={{
                                         display: 'inline-flex',
                                         alignItems: 'center',
-                                        gap: '10px',
+                                        gap: '5px',
                                     }}
                                 >
                                     <span
@@ -362,8 +372,8 @@ const TableManager: React.FC = () => {
                                         checked={item.checked}
                                         onChange={() => handleToggleCheckbox(index)}
                                         style={{
-                                            width: '16px', // Taille standard pour la checkbox
-                                            height: '16px',
+                                            width: '12px', // Réduit la largeur de la checkbox
+                                            height: '12px', // Réduit la hauteur de la checkbox
                                             cursor: 'pointer',
                                         }}
                                     />
