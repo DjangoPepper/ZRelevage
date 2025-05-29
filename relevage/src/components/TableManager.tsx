@@ -185,6 +185,11 @@ const TableManager: React.FC = () => {
         }
     };
 
+
+
+
+
+
     const Modal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (newValue: string) => void; value: string }> = ({
         isOpen,
         onClose,
@@ -319,6 +324,18 @@ const TableManager: React.FC = () => {
                       )
                     : null
             );
+
+            // Mettez à jour les valeurs visuelles
+            if (selectedColumnValue && modifiedValue) {
+                const updatedValue = modifiedValue
+                    .map((item, i) => (i === index ? { ...item, checked: !item.checked } : item))
+                    .map((item) => (item.checked ? `${item.char}-` : item.char)) // Ajoute un tiret après les caractères cochés
+                    .join('');
+                setVisualColumnData((prev) => ({
+                    ...prev,
+                    [selectedColumnValue]: updatedValue,
+                }));
+            }
         };
 
         return (
@@ -333,22 +350,23 @@ const TableManager: React.FC = () => {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
+                    zIndex: 1000, // Assure que le modal est au-dessus des autres éléments
                 }}
             >
                 <div
                     style={{
                         backgroundColor: 'white',
                         padding: '20px',
-                        borderRadius: '5px',
-                        width: '400px',
+                        borderRadius: '10px', // Ajoute des coins arrondis
+                        maxWidth: '600px', // Limite la largeur maximale du modal
+                        width: '90%', // Adapte la largeur à l'écran
                         textAlign: 'center',
-                        whiteSpace: 'nowrap', // Empêche le retour à la ligne
+                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)', // Ajoute une ombre pour un meilleur rendu
                         overflow: 'hidden', // Empêche le débordement
-                        textOverflow: 'ellipsis', // Ajoute des points de suspension si le texte dépasse
                     }}
                 >
                     <h3>Espaces à cocher</h3>
-                    <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                         {modifiedValue.map((item, index) => (
                             <span
                                 key={index}
@@ -382,12 +400,13 @@ const TableManager: React.FC = () => {
                     <button
                         onClick={onClose}
                         style={{
-                            padding: '10px',
+                            padding: '10px 20px',
                             backgroundColor: '#007BFF',
                             color: 'white',
                             border: 'none',
-                            borderRadius: '3px',
+                            borderRadius: '5px',
                             cursor: 'pointer',
+                            marginTop: '10px',
                         }}
                     >
                         Fermer
@@ -396,6 +415,14 @@ const TableManager: React.FC = () => {
             </div>
         );
     };
+
+    const getModifiedValueWithSpaces = (value: string, modifiedValue: { char: string; checked: boolean }[]) => {
+        return modifiedValue
+            .map((item) => (item.checked ? `${item.char}-` : item.char)) // Ajoute un tiret après les caractères cochés
+            .join('');
+    };
+
+    const [visualColumnData, setVisualColumnData] = useState<{ [key: string]: string }>({});
 
     return (
         <div style={{ padding: '20px' }}>
@@ -705,33 +732,24 @@ const TableManager: React.FC = () => {
                         <tbody>
                             {data.map((row, rowIndex) => (
                                 <tr key={rowIndex}>
-                                    {headers.map(
-                                        (header) =>
-                                            !hiddenColumns.includes(header) && (
-                                                <td
-                                                    key={header}
-                                                    style={{
-                                                        border: '1px solid #ddd',
-                                                        padding: '8px',
-                                                        textAlign: 'left',
-                                                        width: `${100 / headers.length}%`, // Assure une largeur égale pour les cellules
-                                                        background: (() => {
-                                                            if (oppositeColors[header] && columnColors[header]) {
-                                                                const { min, max } = calculateMinMax(header);
-                                                                const value = parseFloat(row[header]);
-                                                                if (!isNaN(value) && max !== min) {
-                                                                    const ratio = (value - min) / (max - min);
-                                                                    return interpolateColor(columnColors[header], oppositeColors[header], ratio);
-                                                                }
-                                                            }
-                                                            return 'transparent';
-                                                        })(),
-                                                    }}
-                                                    onClick={() => openModal(rowIndex, header, row[header] || '')}
-                                                >
-                                                    {row[header]}
-                                                </td>
-                                            )
+                                    {headers.map((header) =>
+                                        !hiddenColumns.includes(header) && (
+                                            <td
+                                                key={header}
+                                                style={{
+                                                    border: '1px solid #ddd',
+                                                    padding: '8px',
+                                                    textAlign: 'left',
+                                                    width: `${100 / headers.length}%`, // Assure une largeur égale pour les cellules
+                                                }}
+                                            >
+                                                {selectedColumnValue && header === selectedColumnValue && visualColumnData[header] ? (
+                                                    visualColumnData[header]
+                                                ) : (
+                                                    row[header]
+                                                )}
+                                            </td>
+                                        )
                                     )}
                                 </tr>
                             ))}
