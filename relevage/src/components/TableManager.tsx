@@ -10,7 +10,7 @@ const TableManager: React.FC = () => {
     const [selectedSheet, setSelectedSheet] = useState<string>(''); // Feuille sélectionnée
     const [hiddenColumns, setHiddenColumns] = useState<string[]>([]); // Colonnes masquées
     const [columnColors, setColumnColors] = useState<{ [key: string]: string }>({}); // Couleurs des colonnes
-    const [columnSortOrder, setColumnSortOrder] = useState<{ [key: string]: 'asc' | 'desc' }>({}); // Ordre de tri des colonnes
+    const [columnSortOrder, setColumnSortOrder] = useState<{ [key: string]: 'asc' | 'desc' | 'original' }>({}); // Ordre de tri des colonnes
     const [isSorting, setIsSorting] = useState(false); // État de tri
 
     const [showSheets, setShowSheets] = useState<boolean>(true); // Afficher/Masquer les feuilles disponibles
@@ -47,8 +47,16 @@ const TableManager: React.FC = () => {
 
         try {
             const sheetData = await parseSheet(file, sheetName);
-            setData(sheetData);
-            setHeaders(Object.keys(sheetData[0])); // Récupère les en-têtes
+
+            // Ajoute une colonne `OriginalOrdre` pour conserver l'ordre original
+            const dataWithOriginalOrder = sheetData.map((row, index) => ({
+                ...row,
+                OriginalOrdre: index,
+            }));
+
+            setData(dataWithOriginalOrder);
+            setHeaders([...Object.keys(sheetData[0]), 'OriginalOrdre']); // Ajoute `OriginalOrdre` aux en-têtes
+            setHiddenColumns((prev) => [...prev, 'OriginalOrdre']); // Masque la colonne `OriginalOrdre`
             setSelectedSheet(sheetName); // Met à jour la feuille sélectionnée
             setShowSheets(false); // Masque les feuilles disponibles
         } catch (err) {
@@ -92,25 +100,31 @@ const TableManager: React.FC = () => {
     };
 
     const toggleColumnSortOrder = (header: string) => {
-        const currentOrder = columnSortOrder[header] || 'asc';
-        const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+        const currentOrder = columnSortOrder[header] || 'original';
+        const newOrder = currentOrder === 'original' ? 'asc' : currentOrder === 'asc' ? 'desc' : 'original';
 
         setColumnSortOrder((prev) => ({ ...prev, [header]: newOrder }));
 
-        const sortedData = [...data].sort((a, b) => {
-            const valueA = a[header] || '';
-            const valueB = b[header] || '';
+        if (newOrder === 'original') {
+            // Restaure l'ordre original en utilisant `OriginalOrdre`
+            const originalOrderData = [...data].sort((a, b) => a.OriginalOrdre - b.OriginalOrdre);
+            setData(originalOrderData);
+        } else {
+            const sortedData = [...data].sort((a, b) => {
+                const valueA = a[header] || '';
+                const valueB = b[header] || '';
 
-            if (typeof valueA === 'number' && typeof valueB === 'number') {
-                return newOrder === 'asc' ? valueA - valueB : valueB - valueA;
-            } else {
-                return newOrder === 'asc'
-                    ? String(valueA).localeCompare(String(valueB))
-                    : String(valueB).localeCompare(String(valueA));
-            }
-        });
+                if (typeof valueA === 'number' && typeof valueB === 'number') {
+                    return newOrder === 'asc' ? valueA - valueB : valueB - valueA;
+                } else {
+                    return newOrder === 'asc'
+                        ? String(valueA).localeCompare(String(valueB))
+                        : String(valueB).localeCompare(String(valueA));
+                }
+            });
 
-        setData(sortedData);
+            setData(sortedData);
+        }
     };
 
     // Met à jour le titre de la page dynamiquement
@@ -367,7 +381,11 @@ const TableManager: React.FC = () => {
                                                             cursor: 'pointer',
                                                         }}
                                                     >
-                                                        {columnSortOrder[header] === 'asc' ? '↓' : '↑'}
+                                                        {columnSortOrder[header] === 'asc'
+                                                            ? '↓' // Tri croissant
+                                                            : columnSortOrder[header] === 'desc'
+                                                            ? '↑' // Tri décroissant
+                                                            : '↔'} {/* État original */}
                                                     </button>
                                                     {showColumnActions && (
                                                         <>
