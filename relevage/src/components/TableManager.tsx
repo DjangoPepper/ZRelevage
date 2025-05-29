@@ -395,7 +395,26 @@ const TableManager: React.FC = () => {
 
             {data.length > 0 && (
                 <div style={{ marginTop: '20px' }}>
-                    <h2>Données de la feuille sélectionnée :</h2>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <h2 style={{ margin: 0 }}>Données de la feuille :</h2>
+                        <input
+                            type="text"
+                            placeholder="Rechercher..."
+                            onChange={(e) => {
+                                const searchTerm = e.target.value.toLowerCase();
+                                const filteredData = data.filter((row) =>
+                                    headers.some((header) => String(row[header]).toLowerCase().includes(searchTerm))
+                                );
+                                setData(filteredData);
+                            }}
+                            style={{
+                                padding: '5px',
+                                border: '1px solid #ddd',
+                                borderRadius: '3px',
+                                width: '200px',
+                            }}
+                        />
+                    </div>
                     <table
                         style={{
                             borderCollapse: 'collapse',
