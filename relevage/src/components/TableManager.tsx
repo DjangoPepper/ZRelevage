@@ -1,18 +1,29 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { parseExcel, parseSheet } from '../utils/excelParser';
 
 const TableManager: React.FC = () => {
     const [sheetNames, setSheetNames] = useState<string[]>([]);
     const [data, setData] = useState<any[]>([]);
-    const [headers, setHeaders] = useState<string[]>([]); // Nouveaux en-têtes
+    const [headers, setHeaders] = useState<string[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [fileName, setFileName] = useState<string>(''); // Nom du fichier sans extension
+    const [selectedSheet, setSelectedSheet] = useState<string>(''); // Feuille sélectionnée
     const [hiddenColumns, setHiddenColumns] = useState<string[]>([]); // Colonnes masquées
-    const [showActions, setShowActions] = useState<boolean>(true); // État pour afficher/masquer les actions
-    const [searchQuery, setSearchQuery] = useState('');
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
-    const [columnColors, setColumnColors] = useState<Record<string, string>>({});
+    const [columnColors, setColumnColors] = useState<{ [key: string]: string }>({}); // Couleurs des colonnes
+    const [columnSortOrder, setColumnSortOrder] = useState<{ [key: string]: 'asc' | 'desc' }>({}); // Ordre de tri des colonnes
+    const [isSorting, setIsSorting] = useState(false); // État de tri
+
+    const [showSheets, setShowSheets] = useState<boolean>(true); // Afficher/Masquer les feuilles disponibles
+    const [showColumnActions, setShowColumnActions] = useState<boolean>(true); // Afficher/Masquer les actions sur les colonnes
+    const [isModalOpen, setIsModalOpen] = useState(false); // État pour la visibilité du modal
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    // Fonction pour extraire le nom du fichier sans extension
+    const extractFileName = (file: File): string => {
+        const name = file.name;
+        return name.substring(0, name.lastIndexOf('.')) || name;
+    };
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -23,6 +34,7 @@ const TableManager: React.FC = () => {
             setSheetNames(sheetNames);
             setData([]);
             setError(null);
+            setFileName(extractFileName(file)); // Met à jour le nom du fichier
         } catch (err) {
             setError('Erreur lors de l\'importation du fichier Excel.');
             console.error(err);
@@ -37,360 +49,205 @@ const TableManager: React.FC = () => {
             const sheetData = await parseSheet(file, sheetName);
             setData(sheetData);
             setHeaders(Object.keys(sheetData[0])); // Récupère les en-têtes
-            setHiddenColumns([]); // Réinitialise les colonnes masquées
-            setError(null);
+            setSelectedSheet(sheetName); // Met à jour la feuille sélectionnée
+            setShowSheets(false); // Masque les feuilles disponibles
         } catch (err) {
-            setError(`Erreur lors du chargement de la feuille "${sheetName}".`);
+            setError('Erreur lors de la sélection de la feuille.');
             console.error(err);
         }
     };
 
-    const handleHeaderAction = (action: string, headerName?: string, newHeaderName?: string) => {
-        switch (action) {
-            case 'hidde':
-                if (headerName) {
-                    setHiddenColumns((prevHiddenColumns) =>
-                        prevHiddenColumns.includes(headerName)
-                            ? prevHiddenColumns.filter((col) => col !== headerName) // Unhide column
-                            : [...prevHiddenColumns, headerName] // Hide column
-                    );
-                }
-                break;
-            case 'modify':
-                setHeaders((prevHeaders) =>
-                    prevHeaders.map((header) => (header === headerName && newHeaderName ? newHeaderName : header))
-                );
-                setData((prevData) =>
-                    prevData.map((row) => {
-                        if (headerName && newHeaderName) {
-                            const { [headerName]: value, ...rest } = row; // Destructure to remove the old header
-                            return { ...rest, [newHeaderName]: value }; // Add the new header with the value
-                        }
-                        return row; // Return the row unchanged if headerName or newHeaderName is undefined
-                    })
-                );
-                break;
-            case 'add':
-                if (newHeaderName) {
-                    setHeaders((prevHeaders) => [...prevHeaders, newHeaderName]);
-                    setData((prevData) =>
-                        prevData.map((row) => ({ ...row, [newHeaderName]: '' }))
-                    );
-                }
-                break;
-            default:
-                break;
+    const handleColumnNameChange = (index: number, newName: string) => {
+        const oldName = headers[index];
+        const newHeaders = [...headers];
+        newHeaders[index] = newName;
+
+        // Met à jour les clés des objets dans `data`
+        const updatedData = data.map((row) => {
+            const updatedRow = { ...row };
+            updatedRow[newName] = updatedRow[oldName];
+            delete updatedRow[oldName];
+            return updatedRow;
+        });
+
+        setHeaders(newHeaders);
+        setData(updatedData);
+    };
+
+    const toggleColumnVisibility = (header: string) => {
+        setHiddenColumns((prev) =>
+            prev.includes(header) ? prev.filter((col) => col !== header) : [...prev, header]
+        );
+    };
+
+    const toggleColumnSortOrder = (header: string) => {
+        const currentOrder = columnSortOrder[header] || 'asc';
+        const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+
+        setColumnSortOrder((prev) => ({ ...prev, [header]: newOrder }));
+
+        const sortedData = [...data].sort((a, b) => {
+            const valueA = a[header] || '';
+            const valueB = b[header] || '';
+
+            if (typeof valueA === 'number' && typeof valueB === 'number') {
+                return newOrder === 'asc' ? valueA - valueB : valueB - valueA;
+            } else {
+                return newOrder === 'asc'
+                    ? String(valueA).localeCompare(String(valueB))
+                    : String(valueB).localeCompare(String(valueA));
+            }
+        });
+
+        setData(sortedData);
+    };
+
+    // Met à jour le titre de la page dynamiquement
+    useEffect(() => {
+        if (fileName && selectedSheet) {
+            document.title = `${fileName} - ${selectedSheet}`;
+        } else if (fileName) {
+            document.title = fileName;
+        } else {
+            document.title = 'Table Manager';
+        }
+    }, [fileName, selectedSheet]);
+
+    // Fonction pour calculer la couleur opposée
+    const getOppositeColor = (color: string): string => {
+        const hex = color.replace('#', '');
+        const r = 255 - parseInt(hex.substring(0, 2), 16);
+        const g = 255 - parseInt(hex.substring(2, 4), 16);
+        const b = 255 - parseInt(hex.substring(4, 6), 16);
+        return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+    };
+
+    // Ajoutez un état pour stocker les couleurs opposées
+    const [oppositeColors, setOppositeColors] = useState<{ [key: string]: string }>({});
+    const [editingCell, setEditingCell] = useState<{ rowIndex: number | null; header: string; value: string } | null>(null); // Cellule en cours d'édition
+
+    const openModal = (rowIndex: number | null, header: string, value: string) => {
+        setEditingCell({ rowIndex, header, value });
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setEditingCell(null);
+        setIsModalOpen(false);
+    };
+
+    const saveCellEdit = (newValue: string) => {
+        if (editingCell) {
+            const { rowIndex, header } = editingCell;
+
+            if (rowIndex === null) {
+                // Mise à jour du nom de la colonne
+                const index = headers.indexOf(header);
+                handleColumnNameChange(index, newValue);
+            } else {
+                // Mise à jour des données
+                const updatedData = [...data];
+                updatedData[rowIndex][header] = newValue;
+                setData(updatedData);
+            }
+
+            closeModal();
         }
     };
 
-    const handleMoveColumn = (headerName: string, direction: 'left' | 'right') => {
-        setHeaders((prevHeaders) => {
-            const index = prevHeaders.indexOf(headerName);
-            if (index === -1) return prevHeaders;
+    const Modal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (newValue: string) => void; value: string }> = ({
+        isOpen,
+        onClose,
+        onSave,
+        value,
+    }) => {
+        const [inputValue, setInputValue] = useState(value);
 
-            const newHeaders = [...prevHeaders];
-            const targetIndex = direction === 'left' ? index - 1 : index + 1;
+        if (!isOpen) return null;
 
-            if (targetIndex >= 0 && targetIndex < newHeaders.length) {
-                // Swap the columns
-                [newHeaders[index], newHeaders[targetIndex]] = [newHeaders[targetIndex], newHeaders[index]];
-            }
-            return newHeaders;
-        });
-
-        setData((prevData) =>
-            prevData.map((row) => {
-                const newRow: Record<string, any> = {};
-                const keys = Object.keys(row);
-
-                const reorderedKeys = [...keys];
-                const index = reorderedKeys.indexOf(headerName);
-                const targetIndex = direction === 'left' ? index - 1 : index + 1;
-
-                if (index !== -1 && targetIndex >= 0 && targetIndex < reorderedKeys.length) {
-                    // Swap the keys
-                    [reorderedKeys[index], reorderedKeys[targetIndex]] = [reorderedKeys[targetIndex], reorderedKeys[index]];
-                }
-
-                reorderedKeys.forEach((key) => {
-                    newRow[key] = row[key];
-                });
-
-                return newRow;
-            })
-        );
-    };
-
-    const handleAddColumn = (clickedHeader: string) => {
-        setHeaders((prevHeaders) => {
-            const index = prevHeaders.indexOf(clickedHeader);
-            if (index === -1) return prevHeaders;
-
-            const newHeaders = [...prevHeaders];
-            newHeaders.splice(index, 0, `New Column ${index}`);
-            return newHeaders;
-        });
-
-        setData((prevData) =>
-            prevData.map((row) => {
-                const newRow: Record<string, any> = {};
-                const keys = Object.keys(row);
-                keys.forEach((key, idx) => {
-                    if (idx === keys.indexOf(clickedHeader)) {
-                        newRow[`New Column ${idx}`] = 0; // Default value
-                    }
-                    newRow[key] = row[key];
-                });
-                return newRow;
-            })
-        );
-    };
-
-    const handleSearch = (query: string) => {
-        setSearchQuery(query);
-    };
-
-    const handleSort = (key: string) => {
-        setSortConfig((prevSortConfig) => {
-            if (prevSortConfig && prevSortConfig.key === key) {
-                // Toggle sort direction
-                return {
-                    key,
-                    direction: prevSortConfig.direction === 'asc' ? 'desc' : 'asc',
-                };
-            }
-            // Default to ascending order
-            return { key, direction: 'asc' };
-        });
-    };
-
-    const handleColorizeColumn = (header: string) => {
-        const pastelColors = [
-            '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9', '#BAE1FF'
-        ];
-        const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
-        setColumnColors((prevColors) => ({
-            ...prevColors,
-            [header]: randomColor,
-        }));
-    };
-
-    const handleToggleColorizeColumn = (header: string) => {
-        setColumnColors((prevColors) => {
-            if (prevColors[header]) {
-                // Remove colorization if it already exists
-                const { [header]: _, ...rest } = prevColors;
-                return rest;
-            } else {
-                // Add colorization
-                const minMax = data.reduce(
-                    (acc, row) => {
-                        const value = parseFloat(row[header]);
-                        if (!isNaN(value)) {
-                            acc.min = Math.min(acc.min, value);
-                            acc.max = Math.max(acc.max, value);
-                        }
-                        return acc;
-                    },
-                    { min: Infinity, max: -Infinity }
-                );
-                return {
-                    ...prevColors,
-                    [header]: minMax,
-                };
-            }
-        });
-    };
-
-    const filteredData = data.filter((row) =>
-        Object.values(row).some((value) =>
-            value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    );
-
-    const sortedData = React.useMemo(() => {
-        if (!sortConfig) return filteredData;
-
-        const { key, direction } = sortConfig;
-        return [...filteredData].sort((a, b) => {
-            const aValue = a[key] || '';
-            const bValue = b[key] || '';
-
-            if (aValue < bValue) return direction === 'asc' ? -1 : 1;
-            if (aValue > bValue) return direction === 'asc' ? 1 : -1;
-            return 0;
-        });
-    }, [filteredData, sortConfig]);
-
-    const renderHeaderActions = () => (
-        <div style={{ marginTop: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h3 style={{ margin: 0 }}>Actions sur les en-têtes :</h3>
-                <button
-                    onClick={() => setShowActions((prev) => !prev)}
-                    style={{ padding: '5px 10px', backgroundColor: '#007BFF', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+        return (
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+            >
+                <div
+                    style={{
+                        backgroundColor: 'white',
+                        padding: '20px',
+                        borderRadius: '5px',
+                        width: '300px',
+                        textAlign: 'center',
+                    }}
                 >
-                    Toggle
-                </button>
-                <hr style={{ width: '100%', border: '1px solid #ccc' }} />
-            </div>
-            {showActions && (
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    {headers.map((header) => (
-                        <div key={header} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            &nbsp;
-                            &nbsp;
-                            <button
-                                onClick={() => {
-                                    const newHeaderName = prompt(`Modifier l'en-tête "${header}" :`, header);
-                                    if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
-                                }}
-                                style={{
-                                    padding: '5px 10px',
-                                    backgroundColor: '#007BFF',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                MOd
-                            </button>
-                            <button
-                                onClick={() => handleHeaderAction('hidde', header)}
-                                style={{
-                                    padding: '5px 10px',
-                                    backgroundColor: hiddenColumns.includes(header) ? '#d3d3d3' : '#FF5733',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                {hiddenColumns.includes(header) ? 'View' : 'Hidd'}
-                            </button>
-                            <button
-                                onClick={() => handleToggleColorizeColumn(header)}
-                                style={{ padding: '5px 10px', backgroundColor: '#D3D3D3', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-                            >
-                                {columnColors[header] ? 'Remove Colorization' : 'Colorize'}
-                            </button>
-                            <span>{header}</span>
-                        </div>
-                    ))}
+                    <h3>Modifier la cellule</h3>
+                    <input
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <button onClick={onClose} style={{ padding: '10px', backgroundColor: '#ccc', border: 'none' }}>
+                            Annuler
+                        </button>
+                        <button
+                            onClick={() => onSave(inputValue)}
+                            style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none' }}
+                        >
+                            Sauvegarder
+                        </button>
+                    </div>
                 </div>
-            )}
-        </div>
-    );
-
-    const renderTable = () => (
-        <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead>
-                <tr>
-                    {headers
-                        .filter((header) => !hiddenColumns.includes(header))
-                        .map((header, index) => (
-                            <th key={header} style={{ fontSize: '1.2em', fontWeight: 'bold', textDecoration: 'underline', fontFamily: 'Arial, sans-serif', textTransform: 'uppercase' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    <div>
-                                        {showActions && (
-                                            <div>
-                                                <button onClick={() => {
-                                                        const newHeaderName = prompt(`Modifier l'en-tête \"${header}\" :`, header);
-                                                        if (newHeaderName) handleHeaderAction('modify', header, newHeaderName);
-                                                    }}
-                                                >
-                                                    M
-                                                </button>
-                                                <button onClick={() => handleAddColumn(header)}>+</button>
-                                                <button onClick={() => handleMoveColumn(header, 'left')}>←</button>
-                                                <button onClick={() => handleMoveColumn(header, 'right')}>→</button>
-                                                {index === headers.length - 1 && (
-                                                    <button onClick={() => handleAddColumn(header)}>+</button>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <span>{header}</span>
-                                        <button
-                                            onClick={() => handleSort(header)}
-                                            style={{ padding: '2px 5px', marginLeft: '5px', backgroundColor: '#007BFF', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
-                                        >
-                                            ⇅
-                                        </button>
-                                    </div>
-                                </div>
-                            </th>
-                        ))}
-                </tr>
-            </thead>
-            <tbody>
-                {sortedData.map((row, rowIndex) => (
-                    <tr key={rowIndex}>
-                        {headers
-                            .filter((header) => !hiddenColumns.includes(header))
-                            .map((header) => (
-                                <td
-                                    key={header}
-                                    style={{
-                                        border: '1px solid black',
-                                        textAlign: 'center',
-                                        backgroundColor: columnColors[header] || 'transparent',
-                                    }}
-                                >
-                                    {row[header]}
-                                </td>
-                            ))}
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-    );
-
-    const renderSheetSelector = () => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span>Feuilles disponibles:</span>
-            {sheetNames.map((sheetName) => (
-                <button
-                    key={sheetName}
-                    onClick={() => handleSheetSelect(sheetName)}
-                    style={{ padding: '5px 10px', cursor: 'pointer' }}
-                >
-                    {sheetName}
-                </button>
-            ))}
-        </div>
-    );
+            </div>
+        );
+    };
 
     return (
         <div style={{ padding: '20px' }}>
-            {/* <h1 style={{ textAlign: 'center' }}>Gestionnaire de Tableaux Excel</h1> */}
-            <input
-                type="file"
-                accept=".xlsx, .xls"
-                onChange={handleFileUpload}
-                ref={fileInputRef}
-            />
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                <input
+                    type="file"
+                    accept=".xlsx, .xls"
+                    onChange={handleFileUpload}
+                    ref={fileInputRef}
+                    style={{ padding: '5px' }}
+                />
+                {selectedSheet && (
+                    <button
+                        onClick={() => setShowSheets((prev) => !prev)}
 
-            {sheetNames.length > 0 && (
+                    >
+                        {showSheets ? 'Masquer les feuilles' : 'Afficher les feuilles'}
+                    </button>
+                )}
+                {selectedSheet && (
+                    <button
+                        onClick={() => setShowColumnActions((prev) => !prev)}
+
+                    >
+                        {showColumnActions ? 'Masquer les actions' : 'Afficher les actions'}
+                    </button>
+                )}
+            </div>
+
+            {showSheets && sheetNames.length > 0 && (
                 <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <h2 style={{ margin: 0 }}>Feuilles disponibles :</h2>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'nowrap', overflowX: 'auto' }}>
-                        {sheetNames.map(sheetName => (
+                        {sheetNames.map((sheetName) => (
                             <button
                                 key={sheetName}
                                 onClick={() => handleSheetSelect(sheetName)}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: '#007BFF',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    cursor: 'pointer',
-                                    whiteSpace: 'nowrap',
-                                }}
+
                             >
                                 {sheetName}
                             </button>
@@ -399,23 +256,154 @@ const TableManager: React.FC = () => {
                 </div>
             )}
 
-            {headers.length > 0 && renderHeaderActions()}
+            {showColumnActions && headers.length > 0 && (
+                <div style={{ marginTop: '20px' }}>
+                    <h3 style={{ margin: 0 }}>Colonnes :</h3>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        {headers.map((header, index) => (
+                            <div key={header} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div
+                                    style={{ cursor: 'pointer', padding: '5px', border: '1px solid #ddd' }}
+                                    onClick={() => openModal(null, header, header)} // Ouvre le modal pour modifier le nom de la colonne
+                                >
+                                    {header}
+                                </div>
+                                <button
+                                    onClick={() => toggleColumnVisibility(header)}
+                                    style={{
+                                        padding: '5px 10px',
+                                        backgroundColor: '#007BFF',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '3px',
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    {hiddenColumns.includes(header) ? 'Afficher' : 'Masquer'}
+                                </button>
+                                <input
+                                    type="color"
+                                    onChange={(e) => {
+                                        const newColor = e.target.value;
+                                        setColumnColors((prev) => ({ ...prev, [header]: newColor }));
+                                        setOppositeColors((prev) => ({ ...prev, [header]: getOppositeColor(newColor) }));
+                                    }}
+                                    value={columnColors[header] || '#ffffff'}
+                                />
+                                {oppositeColors[header] && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <input
+                                            type="color"
+                                            onChange={(e) => {
+                                                const newOppositeColor = e.target.value;
+                                                setOppositeColors((prev) => ({ ...prev, [header]: newOppositeColor }));
+                                            }}
+                                            value={oppositeColors[header]}
+                                            style={{ cursor: 'pointer' }}
+                                        />
+{/*                                         <button
+                                            style={{
+                                                padding: '5px 10px',
+                                                backgroundColor: oppositeColors[header],
+                                                color: '#fff',
+                                                border: 'none',
+                                                borderRadius: '3px',
+                                                cursor: 'pointer',
+                                            }}
+                                            onClick={() => alert(`Couleur opposée : ${oppositeColors[header]}`)}
+                                        >
+                                            Couleur opposée
+                                        </button> */}
+                                        &nbsp;&nbsp;
+                                        {/* {oppositeColors[header]} */}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {data.length > 0 && (
                 <div style={{ marginTop: '20px' }}>
                     <h2>Données de la feuille sélectionnée :</h2>
-                    <div style={{ marginBottom: '20px' }}>
-                        <input
-                            type="text"
-                            placeholder="Rechercher une valeur..."
-                            value={searchQuery}
-                            onChange={(e) => handleSearch(e.target.value)}
-                            style={{ padding: '5px', width: '100%', border: '1px solid #ccc', borderRadius: '5px' }}
-                        />
-                    </div>
-                    {renderTable()}
+                    <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                        <thead>
+                            <tr>
+                                {headers.map(
+                                    (header) =>
+                                        !hiddenColumns.includes(header) && (
+                                            <th
+                                                key={header}
+                                                style={{
+                                                    border: '1px solid #ddd',
+                                                    padding: '8px',
+                                                    textAlign: 'left',
+                                                    backgroundColor: columnColors[header] || 'transparent', // Applique la couleur principale comme fond
+                                                    color: columnColors[header] ? '#fff' : '#000', // Texte blanc si une couleur est définie, sinon noir
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                    {header}
+                                                    <button
+                                                        onClick={() => toggleColumnSortOrder(header)}
+                                                        style={{
+                                                            padding: '5px',
+                                                            backgroundColor: '#007BFF',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '3px',
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        {columnSortOrder[header] === 'asc' ? '↓' : '↑'}
+                                                    </button>
+                                                    <input
+                                                        type="color"
+                                                        onChange={(e) =>
+                                                            setColumnColors((prev) => ({ ...prev, [header]: e.target.value }))
+                                                        }
+                                                        value={columnColors[header] || '#ffffff'}
+                                                        style={{ cursor: 'pointer' }}
+                                                    />
+                                                </div>
+                                            </th>
+                                        )
+                                )}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map((row, rowIndex) => (
+                                <tr key={rowIndex}>
+                                    {headers.map(
+                                        (header) =>
+                                            !hiddenColumns.includes(header) && (
+                                                <td
+                                                    key={header}
+                                                    style={{
+                                                        border: '1px solid #ddd',
+                                                        padding: '8px',
+                                                        cursor: 'pointer',
+                                                    }}
+                                                    onClick={() => openModal(rowIndex, header, row[header] || '')} // Ouvre le modal
+                                                >
+                                                    {row[header]}
+                                                </td>
+                                            )
+                                    )}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {isSorting && <p>Tri en cours...</p>}
                 </div>
             )}
+            <Modal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                onSave={saveCellEdit}
+                value={editingCell?.value || ''}
+            />
         </div>
     );
 };
