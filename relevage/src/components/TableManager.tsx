@@ -370,23 +370,25 @@ const TableManager: React.FC = () => {
                                             >
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                     {header}
-                                                    <button
-                                                        onClick={() => toggleColumnSortOrder(header)}
-                                                        style={{
-                                                            padding: '5px',
-                                                            backgroundColor: '#007BFF',
-                                                            color: 'white',
-                                                            border: 'none',
-                                                            borderRadius: '3px',
-                                                            cursor: 'pointer',
-                                                        }}
-                                                    >
-                                                        {columnSortOrder[header] === 'asc'
-                                                            ? '↓' // Tri croissant
-                                                            : columnSortOrder[header] === 'desc'
-                                                            ? '↑' // Tri décroissant
-                                                            : '↔'} {/* État original */}
-                                                    </button>
+                                                    {!showColumnActions && ( // Affiche le bouton de tri uniquement si `showColumnActions` est false
+                                                        <button
+                                                            onClick={() => toggleColumnSortOrder(header)}
+                                                            style={{
+                                                                padding: '5px',
+                                                                backgroundColor: '#007BFF',
+                                                                color: 'white',
+                                                                border: 'none',
+                                                                borderRadius: '3px',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                        >
+                                                            {columnSortOrder[header] === 'asc'
+                                                                ? '↓' // Tri croissant
+                                                                : columnSortOrder[header] === 'desc'
+                                                                ? '↑' // Tri décroissant
+                                                                : '↔'} {/* État original */}
+                                                        </button>
+                                                    )}
                                                     {showColumnActions && (
                                                         <>
                                                             <button
