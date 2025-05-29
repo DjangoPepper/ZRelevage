@@ -280,6 +280,8 @@ const TableManager: React.FC = () => {
         return { backgroundColor, textColor };
     };
 
+    const [columnSpaces, setColumnSpaces] = useState<{ [key: string]: number }>({});
+
     return (
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
@@ -376,15 +378,53 @@ const TableManager: React.FC = () => {
                                             value={columnColors[header] || '#ffffff'}
                                         />
                                         {oppositeColors[header] && (
-                                            <input
-                                                type="color"
-                                                onChange={(e) => {
-                                                    const newOppositeColor = e.target.value;
-                                                    setOppositeColors((prev) => ({ ...prev, [header]: newOppositeColor }));
-                                                }}
-                                                value={oppositeColors[header]}
-                                                style={{ cursor: 'pointer' }}
-                                            />
+                                            <>
+                                                <button
+                                                    onClick={() =>
+                                                        setColumnSpaces((prev) => ({
+                                                            ...prev,
+                                                            [header]: (prev[header] || 0) - 1, // Réduit le nombre d'espaces
+                                                        }))
+                                                    }
+                                                    style={{
+                                                        padding: '5px',
+                                                        backgroundColor: '#ccc',
+                                                        color: 'black',
+                                                        border: 'none',
+                                                        borderRadius: '3px',
+                                                        cursor: 'pointer',
+                                                    }}
+                                                >
+                                                    &lt;
+                                                </button>
+                                                <button
+                                                    onClick={() =>
+                                                        setColumnSpaces((prev) => ({
+                                                            ...prev,
+                                                            [header]: (prev[header] || 0) + 1, // Augmente le nombre d'espaces
+                                                        }))
+                                                    }
+                                                    style={{
+                                                        padding: '5px',
+                                                        backgroundColor: '#ccc',
+                                                        color: 'black',
+                                                        border: 'none',
+                                                        borderRadius: '3px',
+                                                        cursor: 'pointer',
+                                                    }}
+                                                >
+                                                    &gt;
+                                                </button>
+                                                <input
+                                                    type="color"
+                                                    onChange={(e) => {
+                                                        const newOppositeColor = e.target.value;
+                                                        setOppositeColors((prev) => ({ ...prev, [header]: newOppositeColor }));
+                                                    }}
+                                                    value={oppositeColors[header]}
+                                                    style={{ cursor: 'pointer' }}
+                                                />
+                                            </>
                                         )}
                                     </div>
                                 );
@@ -590,6 +630,7 @@ const TableManager: React.FC = () => {
                                                     }}
                                                     onClick={() => openModal(rowIndex, header, row[header] || '')}
                                                 >
+                                                    {' '.repeat(columnSpaces[header] || 0) /* Ajoute les espaces visuels */}
                                                     {row[header]}
                                                 </td>
                                             )
