@@ -236,6 +236,36 @@ const TableManager: React.FC = () => {
         );
     };
 
+    const calculateMinMax = (header: string) => {
+        const values = data.map((row) => parseFloat(row[header])).filter((value) => !isNaN(value));
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        return { min, max };
+    };
+
+    const interpolateColor = (color1: string, color2: string, ratio: number): string => {
+        const hexToRgb = (hex: string) => {
+            const bigint = parseInt(hex.replace('#', ''), 16);
+            return {
+                r: (bigint >> 16) & 255,
+                g: (bigint >> 8) & 255,
+                b: bigint & 255,
+            };
+        };
+
+        const rgbToHex = (r: number, g: number, b: number) =>
+            `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+
+        const rgb1 = hexToRgb(color1);
+        const rgb2 = hexToRgb(color2);
+
+        const r = Math.round(rgb1.r + (rgb2.r - rgb1.r) * ratio);
+        const g = Math.round(rgb1.g + (rgb2.g - rgb1.g) * ratio);
+        const b = Math.round(rgb1.b + (rgb2.b - rgb1.b) * ratio);
+
+        return rgbToHex(r, g, b);
+    };
+
     return (
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
@@ -508,8 +538,19 @@ const TableManager: React.FC = () => {
                                                         border: '1px solid #ddd',
                                                         padding: '8px',
                                                         cursor: 'pointer',
+                                                        background: (() => {
+                                                            if (oppositeColors[header] && columnColors[header]) {
+                                                                const { min, max } = calculateMinMax(header);
+                                                                const value = parseFloat(row[header]);
+                                                                if (!isNaN(value) && max !== min) {
+                                                                    const ratio = (value - min) / (max - min);
+                                                                    return interpolateColor(columnColors[header], oppositeColors[header], ratio);
+                                                                }
+                                                            }
+                                                            return 'transparent';
+                                                        })(),
                                                     }}
-                                                    onClick={() => openModal(rowIndex, header, row[header] || '')} // Ouvre le modal
+                                                    onClick={() => openModal(rowIndex, header, row[header] || '')}
                                                 >
                                                     {row[header]}
                                                 </td>
