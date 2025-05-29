@@ -22,7 +22,7 @@ const TableManager: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const [selectedColumnValue, setSelectedColumnValue] = useState<string | null>(null);
-    const [modifiedValue, setModifiedValue] = useState<string | null>(null);
+    const [modifiedValue, setModifiedValue] = useState<{ char: string; checked: boolean }[] | null>(null);
 
     // Fonction pour extraire le nom du fichier sans extension
     const extractFileName = (file: File): string => {
@@ -290,7 +290,7 @@ const TableManager: React.FC = () => {
         if (columnValues.length > 0) {
             const randomValue = columnValues[Math.floor(Math.random() * columnValues.length)];
             setSelectedColumnValue(randomValue);
-            setModifiedValue(randomValue.split('').join('•')); // Ajoute des puces entre les caractères
+            setModifiedValue(randomValue.split('').map((char) => ({ char, checked: false }))); // Ajoute un état pour chaque caractère
             setIsSpecialModalOpen(true);
         } else {
             alert('Les valeurs de cette colonne ne sont pas alphanumériques.');
@@ -302,12 +302,16 @@ const TableManager: React.FC = () => {
         onClose,
         value,
     }) => {
-        if (!isOpen || !value) return null;
+        if (!isOpen || !value || !modifiedValue) return null;
 
-        const handleTogglePuce = (index: number) => {
-            const chars = value.split('');
-            chars.splice(index + 1, 0, ' '); // Insère un espace après le caractère sélectionné
-            setModifiedValue(chars.join('•'));
+        const handleToggleCheckbox = (index: number) => {
+            setModifiedValue((prev) =>
+                prev
+                    ? prev.map((item, i) =>
+                        i === index ? { ...item, checked: !item.checked } : item
+                    )
+                    : null
+            );
         };
 
         return (
@@ -333,14 +337,15 @@ const TableManager: React.FC = () => {
                         textAlign: 'center',
                     }}
                 >
-                    <h3>Exemple avec puces</h3>
+                    <h3>Exemple avec cases à cocher</h3>
                     <div style={{ marginBottom: '10px' }}>
-                        {modifiedValue?.split('•').map((char, index) => (
+                        {modifiedValue.map((item, index) => (
                             <span key={index} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                                {char}
+                                {item.char}
                                 <input
                                     type="checkbox"
-                                    onChange={() => handleTogglePuce(index)}
+                                    checked={item.checked}
+                                    onChange={() => handleToggleCheckbox(index)}
                                     style={{ marginLeft: '5px' }}
                                 />
                             </span>
