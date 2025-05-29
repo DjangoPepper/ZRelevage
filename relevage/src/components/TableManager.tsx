@@ -70,6 +70,17 @@ const TableManager: React.FC = () => {
             return updatedRow;
         });
 
+        // Met à jour les couleurs des colonnes
+        setColumnColors((prev) => {
+            const { [oldName]: oldColor, ...rest } = prev;
+            return { ...rest, [newName]: oldColor };
+        });
+
+        setOppositeColors((prev) => {
+            const { [oldName]: oldOppositeColor, ...rest } = prev;
+            return { ...rest, [newName]: oldOppositeColor };
+        });
+
         setHeaders(newHeaders);
         setData(updatedData);
     };
@@ -201,7 +212,7 @@ const TableManager: React.FC = () => {
                         </button>
                         <button
                             onClick={() => onSave(inputValue)}
-                            style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none' }}
+                            // style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none' }}
                         >
                             Sauvegarder
                         </button>
@@ -270,14 +281,14 @@ const TableManager: React.FC = () => {
                                 </div>
                                 <button
                                     onClick={() => toggleColumnVisibility(header)}
-                                    style={{
-                                        padding: '5px 10px',
-                                        backgroundColor: '#007BFF',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '3px',
-                                        cursor: 'pointer',
-                                    }}
+                                    // style={{
+                                    //     padding: '5px 10px',
+                                    //     backgroundColor: '#007BFF',
+                                    //     color: 'white',
+                                    //     border: 'none',
+                                    //     borderRadius: '3px',
+                                    //     cursor: 'pointer',
+                                    // }}
                                 >
                                     {hiddenColumns.includes(header) ? 'Afficher' : 'Masquer'}
                                 </button>
@@ -346,7 +357,7 @@ const TableManager: React.FC = () => {
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                     {header}
                                                     <button
-                                                        onClick={() => toggleColumnSortOrder(header)}
+/*                                                         onClick={() => toggleColumnSortOrder(header)}
                                                         style={{
                                                             padding: '5px',
                                                             backgroundColor: '#007BFF',
@@ -354,7 +365,7 @@ const TableManager: React.FC = () => {
                                                             border: 'none',
                                                             borderRadius: '3px',
                                                             cursor: 'pointer',
-                                                        }}
+                                                        }} */
                                                     >
                                                         {columnSortOrder[header] === 'asc' ? '↓' : '↑'}
                                                     </button>
