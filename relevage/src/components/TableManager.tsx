@@ -347,38 +347,36 @@ const TableManager: React.FC = () => {
                         textOverflow: 'ellipsis', // Ajoute des points de suspension si le texte dépasse
                     }}
                 >
-                    <h3>Exemple avec cases à cocher</h3>
+                    <h3>Espaces à cocher</h3>
                     <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {modifiedValue.map((item, index) => (
-                            index < modifiedValue.length - 1 && ( // Ne pas afficher une checkbox après le dernier caractère
+                            <span
+                                key={index}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                }}
+                            >
                                 <span
-                                    key={index}
                                     style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '5px',
+                                        fontSize: '20px', // Agrandit les caractères
+                                        fontWeight: 'bold',
                                     }}
                                 >
-                                    <span
-                                        style={{
-                                            fontSize: '20px', // Agrandit les caractères
-                                            fontWeight: 'bold',
-                                        }}
-                                    >
-                                        {item.char}
-                                    </span>
-                                    <input
-                                        type="checkbox"
-                                        checked={item.checked}
-                                        onChange={() => handleToggleCheckbox(index)}
-                                        style={{
-                                            width: '12px', // Réduit la largeur de la checkbox
-                                            height: '12px', // Réduit la hauteur de la checkbox
-                                            cursor: 'pointer',
-                                        }}
-                                    />
+                                    {item.char}
                                 </span>
-                            )
+                                <input
+                                    type="checkbox"
+                                    checked={item.checked}
+                                    onChange={() => handleToggleCheckbox(index)}
+                                    style={{
+                                        width: '12px', // Réduit la largeur de la checkbox
+                                        height: '12px', // Réduit la hauteur de la checkbox
+                                        cursor: 'pointer',
+                                    }}
+                                />
+                            </span>
                         ))}
                     </div>
                     <button
