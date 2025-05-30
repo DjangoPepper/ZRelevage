@@ -281,6 +281,73 @@ const TableManager: React.FC = () => {
         return { backgroundColor, textColor };
     };
 
+    const [isActionEnabled, setIsActionEnabled] = useState(false); // État pour activer/désactiver l'action
+    const [isActionModalOpen, setIsActionModalOpen] = useState(false); // État pour afficher/masquer le modal
+
+    const openActionModal = () => setIsActionModalOpen(true);
+    const closeActionModal = () => setIsActionModalOpen(false);
+
+    // Modal pour configurer l'action
+    const ActionModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (enabled: boolean) => void }> = ({
+        isOpen,
+        onClose,
+        onSave,
+    }) => {
+        const [localActionEnabled, setLocalActionEnabled] = useState(isActionEnabled);
+
+        if (!isOpen) return null;
+
+        return (
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}
+            >
+                <div
+                    style={{
+                        backgroundColor: 'white',
+                        padding: '20px',
+                        borderRadius: '5px',
+                        width: '300px',
+                        textAlign: 'center',
+                    }}
+                >
+                    <h3>Configurer l'action</h3>
+                    <label style={{ display: 'block', marginBottom: '10px' }}>
+                        <input
+                            type="checkbox"
+                            checked={localActionEnabled}
+                            onChange={(e) => setLocalActionEnabled(e.target.checked)}
+                        />
+                        Activer l'action
+                    </label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <button onClick={onClose} style={{ padding: '10px', backgroundColor: '#ccc', border: 'none' }}>
+                            Annuler
+                        </button>
+                        <button
+                            onClick={() => {
+                                onSave(localActionEnabled);
+                                onClose();
+                            }}
+                            style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none' }}
+                        >
+                            Sauvegarder
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div style={{ padding: '20px' }}>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
@@ -387,6 +454,20 @@ const TableManager: React.FC = () => {
                                                 style={{ cursor: 'pointer' }}
                                             />
                                         )}
+                                        {/* Nouveau bouton pour ouvrir le modal */}
+                                        <button
+                                            onClick={openActionModal}
+                                            style={{
+                                                padding: '5px',
+                                                backgroundColor: '#6c757d',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '3px',
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            Configurer action
+                                        </button>
                                     </div>
                                 );
                             })}
@@ -495,7 +576,7 @@ const TableManager: React.FC = () => {
                                                                 }}
                                                                 style={{
                                                                     padding: '5px',
-                                                                    backgroundColor: '#ffc107',
+                                                                    backgroundColor: '#28a745',
                                                                     color: 'white',
                                                                     border: 'none',
                                                                     borderRadius: '3px',
@@ -521,7 +602,7 @@ const TableManager: React.FC = () => {
                                                                 }}
                                                                 style={{
                                                                     padding: '5px',
-                                                                    backgroundColor: '#28a745',
+                                                                    backgroundColor: '#ffc107',
                                                                     color: 'white',
                                                                     border: 'none',
                                                                     borderRadius: '3px',
@@ -615,6 +696,11 @@ const TableManager: React.FC = () => {
                 onClose={closeModal}
                 onSave={saveCellEdit}
                 value={editingCell?.value || ''}
+            />
+            <ActionModal
+                isOpen={isActionModalOpen}
+                onClose={closeActionModal}
+                onSave={(enabled) => setIsActionEnabled(enabled)}
             />
         </div>
     );
