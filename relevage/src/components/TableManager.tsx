@@ -652,7 +652,7 @@ const TableManager: React.FC = () => {
                                                                 }}
                                                                 style={{
                                                                     padding: '5px',
-                                                                    backgroundColor: '#ffc107',
+                                                                    backgroundColor: '#28a745',
                                                                     color: 'white',
                                                                     border: 'none',
                                                                     borderRadius: '3px',
@@ -678,7 +678,7 @@ const TableManager: React.FC = () => {
                                                                 }}
                                                                 style={{
                                                                     padding: '5px',
-                                                                    backgroundColor: '#28a745',
+                                                                    backgroundColor: '#ffc107',
                                                                     color: 'white',
                                                                     border: 'none',
                                                                     borderRadius: '3px',
