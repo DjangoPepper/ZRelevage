@@ -771,7 +771,13 @@ const TableManager: React.FC = () => {
 
                         setHeaders(newHeaders); // Met à jour les en-têtes
                         setData(updatedData); // Met à jour les données
+
+                        // Masque la colonne principale
+                        const columnToHide = headers[activeColumnIndex];
+                        setHiddenColumns((prev) => [...prev, columnToHide]); // Ajoute la colonne principale à la liste des colonnes masquées
                     }
+
+                    closeActionModal(); // Ferme le modal
                 }}
                 activeColumnIndex={activeColumnIndex} // Passe l'index de la colonne active au modal
                 randomValue={randomValue} // Passe la valeur aléatoire au modal
