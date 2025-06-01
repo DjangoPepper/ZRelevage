@@ -291,9 +291,9 @@ const TableManager: React.FC = () => {
     const ActionModal: React.FC<{
         isOpen: boolean;
         onClose: () => void;
-        onSave: () => void;
+        onSave: (editableValue: string) => void; // Ajout de la valeur modifiée comme paramètre
         activeColumnIndex: number | null;
-        randomValue: string | null; // Ajout de la valeur aléatoire comme prop
+        randomValue: string | null;
     }> = ({ isOpen, onClose, onSave, activeColumnIndex, randomValue }) => {
         const [localActionEnabled, setLocalActionEnabled] = useState(false);
         const [editableValue, setEditableValue] = useState(randomValue || ''); // État pour le champ éditable
@@ -358,7 +358,7 @@ const TableManager: React.FC = () => {
                         </button>
                         <button
                             onClick={() => {
-                                onSave(); // Appelle la logique d'ajout de colonne
+                                onSave(editableValue); // Transmet la valeur modifiée
                                 onClose(); // Ferme le modal
                             }}
                             style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none' }}
@@ -752,7 +752,7 @@ const TableManager: React.FC = () => {
             <ActionModal
                 isOpen={isActionModalOpen}
                 onClose={closeActionModal}
-                onSave={() => {
+                onSave={(editableValue) => {
                     if (activeColumnIndex !== null) {
                         const newHeaders = [...headers];
                         const originalColumnName = headers[activeColumnIndex]; // Nom de la colonne originale
@@ -764,7 +764,9 @@ const TableManager: React.FC = () => {
                         // Copie les données de la colonne originale dans la nouvelle colonne
                         const updatedData = data.map((row) => ({
                             ...row,
-                            [newColumnName]: row[originalColumnName] || '', // Copie la valeur ou met une chaîne vide si undefined
+                            // [newColumnName]: `${row[originalColumnName] || ''}${editableValue}`, // Ajoute les modifications (tirets, espaces, etc.)
+                            [newColumnName]: `${editableValue}`, // Remplace les modifications (tirets, espaces, etc.)
+                            
                         }));
 
                         setHeaders(newHeaders); // Met à jour les en-têtes
