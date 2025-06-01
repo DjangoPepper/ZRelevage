@@ -475,7 +475,7 @@ const TableManager: React.FC = () => {
                                                 cursor: 'pointer',
                                             }}
                                         >
-                                            Configurer action
+                                            Copie colonne
                                         </button>
                                     </div>
                                 );
@@ -711,13 +711,14 @@ const TableManager: React.FC = () => {
                 onClose={closeActionModal}
                 onSave={() => {
                     if (activeColumnIndex !== null) {
+                        const originalColumnName = headers[activeColumnIndex]; // Nom de la colonne originale
                         const newHeaders = [...headers];
-                        const newColumnName = `Nouvelle colonne ${newHeaders.length + 1}`;
-                        newHeaders.splice(activeColumnIndex + 1, 0, newColumnName); // Insère après la colonne active
+                        const newColumnName = `${originalColumnName} (copie)`; // Nouveau nom pour la colonne copiée
+                        newHeaders.splice(activeColumnIndex + 1, 0, newColumnName); // Insère après la colonne originale
 
                         const updatedData = data.map((row) => ({
                             ...row,
-                            [newColumnName]: '', // Ajoute une colonne vide
+                            [newColumnName]: row[originalColumnName], // Copie les valeurs de la colonne originale
                         }));
 
                         setHeaders(newHeaders);
