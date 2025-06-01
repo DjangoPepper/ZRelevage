@@ -219,7 +219,12 @@ const TableManager: React.FC = () => {
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+                        style={{
+                            width: '80%', // Réduit la largeur à 80% du conteneur
+                            padding: '5px', // Réduit le padding pour un champ plus compact
+                            marginBottom: '10px',
+                            fontSize: '14px', // Ajuste la taille de la police pour un champ plus petit
+                        }}
                     />
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <button onClick={onClose} style={{ padding: '10px', backgroundColor: '#ccc', border: 'none' }}>
@@ -329,14 +334,14 @@ const TableManager: React.FC = () => {
                 >
                     <h3>Configurer l'action</h3>
                     <p>Index de la colonne en cours : {activeColumnIndex !== null ? activeColumnIndex : 'Aucune'}</p>
-                    <label style={{ display: 'block', marginBottom: '10px' }}>
+                    {/* <label style={{ display: 'block', marginBottom: '10px' }}>
                         <input
                             type="checkbox"
                             checked={localActionEnabled}
                             onChange={(e) => setLocalActionEnabled(e.target.checked)}
                         />
                         Activer l'opération
-                    </label>
+                    </label> */}
                     <label style={{ display: 'block', marginBottom: '10px' }}>
                         <strong>Valeur aléatoire :</strong>
                         <input
