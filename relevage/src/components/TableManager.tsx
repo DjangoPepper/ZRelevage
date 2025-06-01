@@ -288,13 +288,19 @@ const TableManager: React.FC = () => {
     const closeActionModal = () => setIsActionModalOpen(false);
 
     // Modal pour configurer l'action
-    const ActionModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: () => void; activeColumnIndex: number | null }> = ({
-        isOpen,
-        onClose,
-        onSave,
-        activeColumnIndex,
-    }) => {
+    const ActionModal: React.FC<{
+        isOpen: boolean;
+        onClose: () => void;
+        onSave: () => void;
+        activeColumnIndex: number | null;
+        randomValue: string | null; // Ajout de la valeur aléatoire comme prop
+    }> = ({ isOpen, onClose, onSave, activeColumnIndex, randomValue }) => {
         const [localActionEnabled, setLocalActionEnabled] = useState(false);
+        const [editableValue, setEditableValue] = useState(randomValue || ''); // État pour le champ éditable
+
+        useEffect(() => {
+            setEditableValue(randomValue || ''); // Met à jour la valeur éditable lorsque `randomValue` change
+        }, [randomValue]);
 
         if (!isOpen) return null;
 
@@ -331,28 +337,65 @@ const TableManager: React.FC = () => {
                         />
                         Activer l'opération
                     </label>
+                    <label style={{ display: 'block', marginBottom: '10px' }}>
+                        <strong>Valeur aléatoire :</strong>
+                        <input
+                            type="text"
+                            value={editableValue}
+                            onChange={(e) => setEditableValue(e.target.value)} // Permet d'éditer la valeur
+                            style={{
+                                width: '100%',
+                                padding: '5px',
+                                marginTop: '5px',
+                                border: '1px solid #ddd',
+                                borderRadius: '3px',
+                            }}
+                        />
+                    </label>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <button onClick={onClose} style={{ padding: '10px', backgroundColor: '#ccc', border: 'none' }}>
                             Annuler
                         </button>
                         <button
                             onClick={() => {
-                                if (localActionEnabled) {
-                                    onSave(); // Appelle la logique d'ajout de colonne
-                            }
-                            onClose(); // Ferme le modal
-                        }}
-                        style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none' }}
-                    >
-                        Sauvegarder
-                    </button>
+                                onSave(); // Appelle la logique d'ajout de colonne
+                                onClose(); // Ferme le modal
+                            }}
+                            style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none' }}
+                        >
+                            Sauvegarder
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
-};
+        );
+    };
 
     const [activeColumnIndex, setActiveColumnIndex] = useState<number | null>(null); // État pour suivre l'index de la colonne active
+
+    // Ajoutez un état pour stocker la valeur aléatoire
+    const [randomValue, setRandomValue] = useState<string | null>(null);
+
+    // Fonction pour sélectionner une valeur aléatoire dans la colonne active
+    const getRandomValueFromColumn = () => {
+        if (activeColumnIndex !== null && headers[activeColumnIndex]) {
+            const columnName = headers[activeColumnIndex];
+            const columnValues = data.map((row) => row[columnName]).filter((value) => value !== undefined);
+            if (columnValues.length > 0) {
+                const randomIndex = Math.floor(Math.random() * columnValues.length);
+                setRandomValue(columnValues[randomIndex]);
+            } else {
+                setRandomValue(null); // Si la colonne est vide
+            }
+        }
+    };
+
+    // Appelez cette fonction après avoir défini l'index de la colonne active
+    useEffect(() => {
+        if (activeColumnIndex !== null) {
+            getRandomValueFromColumn();
+        }
+    }, [activeColumnIndex]);
 
     return (
         <div style={{ padding: '20px' }}>
@@ -725,7 +768,13 @@ const TableManager: React.FC = () => {
                     }
                 }}
                 activeColumnIndex={activeColumnIndex} // Passe l'index de la colonne active au modal
+                randomValue={randomValue} // Passe la valeur aléatoire au modal
             />
+            {randomValue && (
+                <div style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f8f9fa', border: '1px solid #ddd' }}>
+                    <strong>Valeur aléatoire de la colonne active :</strong> {randomValue}
+                </div>
+            )}
         </div>
     );
 };
