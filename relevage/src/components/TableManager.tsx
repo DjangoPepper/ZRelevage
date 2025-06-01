@@ -288,12 +288,13 @@ const TableManager: React.FC = () => {
     const closeActionModal = () => setIsActionModalOpen(false);
 
     // Modal pour configurer l'action
-    const ActionModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (enabled: boolean) => void }> = ({
+    const ActionModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: () => void; activeColumnIndex: number | null }> = ({
         isOpen,
         onClose,
         onSave,
+        activeColumnIndex,
     }) => {
-        const [localActionEnabled, setLocalActionEnabled] = useState(isActionEnabled);
+        const [localActionEnabled, setLocalActionEnabled] = useState(false);
 
         if (!isOpen) return null;
 
@@ -321,13 +322,14 @@ const TableManager: React.FC = () => {
                     }}
                 >
                     <h3>Configurer l'action</h3>
+                    <p>Index de la colonne en cours : {activeColumnIndex !== null ? activeColumnIndex : 'Aucune'}</p>
                     <label style={{ display: 'block', marginBottom: '10px' }}>
                         <input
                             type="checkbox"
                             checked={localActionEnabled}
                             onChange={(e) => setLocalActionEnabled(e.target.checked)}
                         />
-                        Activer l'action
+                        Activer l'opération
                     </label>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <button onClick={onClose} style={{ padding: '10px', backgroundColor: '#ccc', border: 'none' }}>
@@ -335,18 +337,22 @@ const TableManager: React.FC = () => {
                         </button>
                         <button
                             onClick={() => {
-                                onSave(localActionEnabled);
-                                onClose();
-                            }}
-                            style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none' }}
-                        >
-                            Sauvegarder
-                        </button>
-                    </div>
+                                if (localActionEnabled) {
+                                    onSave(); // Appelle la logique d'ajout de colonne
+                            }
+                            onClose(); // Ferme le modal
+                        }}
+                        style={{ padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none' }}
+                    >
+                        Sauvegarder
+                    </button>
                 </div>
             </div>
-        );
-    };
+        </div>
+    );
+};
+
+    const [activeColumnIndex, setActiveColumnIndex] = useState<number | null>(null); // État pour suivre l'index de la colonne active
 
     return (
         <div style={{ padding: '20px' }}>
@@ -456,7 +462,10 @@ const TableManager: React.FC = () => {
                                         )}
                                         {/* Nouveau bouton pour ouvrir le modal */}
                                         <button
-                                            onClick={openActionModal}
+                                            onClick={() => {
+        setActiveColumnIndex(index); // Définit l'index de la colonne active
+        openActionModal(); // Ouvre le modal
+    }}
                                             style={{
                                                 padding: '5px',
                                                 backgroundColor: '#6c757d',
@@ -700,7 +709,22 @@ const TableManager: React.FC = () => {
             <ActionModal
                 isOpen={isActionModalOpen}
                 onClose={closeActionModal}
-                onSave={(enabled) => setIsActionEnabled(enabled)}
+                onSave={() => {
+                    if (activeColumnIndex !== null) {
+                        const newHeaders = [...headers];
+                        const newColumnName = `Nouvelle colonne ${newHeaders.length + 1}`;
+                        newHeaders.splice(activeColumnIndex + 1, 0, newColumnName); // Insère après la colonne active
+
+                        const updatedData = data.map((row) => ({
+                            ...row,
+                            [newColumnName]: '', // Ajoute une colonne vide
+                        }));
+
+                        setHeaders(newHeaders);
+                        setData(updatedData);
+                    }
+                }}
+                activeColumnIndex={activeColumnIndex} // Passe l'index de la colonne active au modal
             />
         </div>
     );
