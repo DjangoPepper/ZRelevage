@@ -490,12 +490,21 @@ const TableManager: React.FC = () => {
                                         </button>
                                         <input
                                             type="color"
+                                            onClick={(e) => {
+                                                // Génère une couleur aléatoire si aucune couleur n'est définie
+                                                if (!columnColors[header]) {
+                                                    const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+                                                    setColumnColors((prev) => ({ ...prev, [header]: randomColor }));
+                                                    setOppositeColors((prev) => ({ ...prev, [header]: getOppositeColor(randomColor) }));
+                                                }
+                                            }}
                                             onChange={(e) => {
                                                 const newColor = e.target.value;
                                                 setColumnColors((prev) => ({ ...prev, [header]: newColor }));
                                                 setOppositeColors((prev) => ({ ...prev, [header]: getOppositeColor(newColor) }));
                                             }}
                                             value={columnColors[header] || '#ffffff'}
+                                            style={{ cursor: 'pointer' }}
                                         />
                                         {oppositeColors[header] && (
                                             <input
