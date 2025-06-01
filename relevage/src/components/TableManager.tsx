@@ -1,6 +1,7 @@
 //rechercheok
 import React, { useState, useRef, useEffect } from 'react';
 import { parseExcel, parseSheet } from '../utils/excelParser';
+import ActionModal from './ActionModal'; // Import du composant ActionModal
 
 const TableManager: React.FC = () => {
     const [sheetNames, setSheetNames] = useState<string[]>([]);
@@ -17,6 +18,7 @@ const TableManager: React.FC = () => {
     const [showSheets, setShowSheets] = useState<boolean>(true); // Afficher/Masquer les feuilles disponibles
     const [showColumnActions, setShowColumnActions] = useState<boolean>(true); // Afficher/Masquer les actions sur les colonnes
     const [isModalOpen, setIsModalOpen] = useState(false); // État pour la visibilité du modal
+    const [isActionModalOpen, setIsActionModalOpen] = useState(false); // État pour afficher/masquer le modal
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -282,7 +284,6 @@ const TableManager: React.FC = () => {
     };
 
     const [isActionEnabled, setIsActionEnabled] = useState(false); // État pour activer/désactiver l'action
-    const [isActionModalOpen, setIsActionModalOpen] = useState(false); // État pour afficher/masquer le modal
 
     const openActionModal = () => setIsActionModalOpen(true);
     const closeActionModal = () => setIsActionModalOpen(false);
