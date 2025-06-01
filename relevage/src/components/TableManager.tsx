@@ -755,16 +755,20 @@ const TableManager: React.FC = () => {
                 onSave={() => {
                     if (activeColumnIndex !== null) {
                         const newHeaders = [...headers];
-                        const newColumnName = `Nouvelle colonne ${newHeaders.length + 1}`;
-                        newHeaders.splice(activeColumnIndex + 1, 0, newColumnName); // Insère après la colonne active
+                        const originalColumnName = headers[activeColumnIndex]; // Nom de la colonne originale
+                        const newColumnName = `${originalColumnName}_copie`; // Nom de la nouvelle colonne
 
+                        // Ajoute la nouvelle colonne après la colonne active
+                        newHeaders.splice(activeColumnIndex + 1, 0, newColumnName);
+
+                        // Copie les données de la colonne originale dans la nouvelle colonne
                         const updatedData = data.map((row) => ({
                             ...row,
-                            [newColumnName]: '', // Ajoute une colonne vide
+                            [newColumnName]: row[originalColumnName] || '', // Copie la valeur ou met une chaîne vide si undefined
                         }));
 
-                        setHeaders(newHeaders);
-                        setData(updatedData);
+                        setHeaders(newHeaders); // Met à jour les en-têtes
+                        setData(updatedData); // Met à jour les données
                     }
                 }}
                 activeColumnIndex={activeColumnIndex} // Passe l'index de la colonne active au modal
